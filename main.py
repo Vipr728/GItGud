@@ -3,9 +3,12 @@ import requests
 import json
 from github import Github
 from dotenv import load_dotenv
-load_dotenv()
 import os
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from openai import OpenAI
+
+# Load API keys
+load_dotenv()
+APIKEY = os.getenv("NVIDIA_NIM_API_KEY_EFFICIENCY")
 
 g = Github(os.getenv("ACCESS_TOKEN"))
 
@@ -13,43 +16,68 @@ app = Flask(__name__)
 
 @app.route('/')
 def get_user_repos(username):
-    """Get repositories for a user using API"""
+    """Get the 5 repositories with the most commits for a user using the API"""
     user = g.get_user(username)
     repos = []
-    
+
     for repo in user.get_repos():
-        repo_data = {
-            "name": repo.name,
-            "stars": repo.stargazers_count,
-            "languages": repo.get_languages(),
-            "description": repo.description,
-            "url": repo.html_url
-        }
-        repos.append(repo_data)
-    
+        try:
+            # Get the number of commits for the repository
+            commit_count = repo.get_commits().totalCount
+            repo_data = {
+                "name": repo.name,
+                "stars": repo.stargazers_count,
+                "languages": repo.get_languages(),
+                "description": repo.description,
+                "url": repo.html_url,
+                "commit_count": commit_count
+            }
+            repos.append(repo_data)
+        except Exception as e:
+            if "Git Repository is empty" in str(e):
+                print(f"Repository {repo.name} is empty. Creating a placeholder.")
+                # Create a placeholder for empty repositories
+                placeholder_folder = os.path.join("downloads", repo.name)
+                os.makedirs(placeholder_folder, exist_ok=True)
+                placeholder_file = os.path.join(placeholder_folder, "placeholder.txt")
+                with open(placeholder_file, "w") as f:
+                    f.write("")
+            else:
+                print(f"Error fetching commits for {repo.name}: {e}")
+
+    # Sort by commit_count and get the top 5
+    repos = sorted(repos, key=lambda x: x["commit_count"], reverse=True)[:5]
     return repos
 
-# Load the AI model for vulnerability detection
-def load_ai_model():
-    model_name = "your-model-name"  # Replace with your model's name or path
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
-    return tokenizer, model
+def analyze_code_for_vulnerabilities(file_path):
+    """Analyze the given code file for vulnerabilities using DeepSeek AI."""
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=APIKEY,
+    )
 
-def analyze_code_for_vulnerabilities(file_path, tokenizer, model):
-    with open(file_path, "r", encoding="utf-8") as f:
-        code = f.read()
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            code = f.read()
 
-    # Tokenize the code
-    inputs = tokenizer(code, return_tensors="pt", truncation=True, max_length=512)
+        completion = client.chat.completions.create(
+            model="deepseek-ai/deepseek-r1-distill-qwen-7b",
+            messages=[
+                {"role": "user", "content": f"Analyze the vulnerabilities of the following code:\n{code}"}
+            ],
+            temperature=0.6,
+            top_p=0.7,
+            max_tokens=4096,
+            stream=False
+        )
 
-    # Run the model
-    outputs = model(**inputs)
-    predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        # Extract the response content
+        response = completion.choices[0].message.content
+        return response
 
-    # Interpret the results (assuming binary classification: 0 = safe, 1 = vulnerable)
-    vulnerability_score = predictions[0][1].item()
-    return vulnerability_score
+    except Exception as e:
+        print(f"Error analyzing vulnerabilities: {e}")
+        return "Error occurred during analysis."
 
 def download_repo_contents(username, repo_name):
     repo = g.get_repo(f"{username}/{repo_name}")
@@ -57,9 +85,6 @@ def download_repo_contents(username, repo_name):
     # Create a special downloads folder
     downloads_folder = "downloads"
     os.makedirs(downloads_folder, exist_ok=True)
-
-    # Load the AI model
-    tokenizer, model = load_ai_model()
 
     # Get all files recursively
     contents = repo.get_contents("")
@@ -70,19 +95,26 @@ def download_repo_contents(username, repo_name):
             contents.extend(repo.get_contents(file_content.path))
         else:
             # Handle root-level files
-            directory = os.path.join(downloads_folder, os.path.dirname(file_content.path))
+            directory = os.path.join(downloads_folder, repo_name, os.path.dirname(file_content.path))
             if directory:  # Only create directories if the path is not empty
                 os.makedirs(directory, exist_ok=True)
 
             # Download file
-            file_path = os.path.join(downloads_folder, file_content.path)
+            file_path = os.path.join(downloads_folder, repo_name, file_content.path)
             with open(file_path, "wb") as f:
                 f.write(file_content.decoded_content)
 
             # Analyze the file for vulnerabilities
             if file_path.endswith(".py") or file_path.endswith(".js") or file_path.endswith(".java"):
-                vulnerability_score = analyze_code_for_vulnerabilities(file_path, tokenizer, model)
-                print(f"Vulnerability score for {file_path}: {vulnerability_score}")
+                vulnerability_score = analyze_code_for_vulnerabilities(file_path)
+                print(f"Vulnerability analysis for {file_path}:\n{vulnerability_score}")
+
+            # Pass the file to the efficiency chatbot
+            from utils.efficency import evaluate_efficiency
+            with open(file_path, "r", encoding="utf-8") as code_file:
+                code_content = code_file.read()
+                efficiency_score = evaluate_efficiency(code_content)
+                print(f"Efficiency analysis for {file_path}:\n{efficiency_score}")
 
     print(f"Downloaded {repo_name} successfully into {downloads_folder}")
 

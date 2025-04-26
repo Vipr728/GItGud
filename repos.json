@@ -1,28 +1,24 @@
 [
   {
-    "name": "bloomquiz",
+    "name": "georgiywebsite",
     "stars": 0,
     "languages": {
-      "HTML": 18595,
-      "Python": 11594,
-      "CSS": 1374
+      "Astro": 83506,
+      "JavaScript": 109
     },
-    "description": "A website creating and taking quizzes.",
-    "url": "https://github.com/floatedbloom/bloomquiz"
+    "description": "My personal website.",
+    "url": "https://github.com/floatedbloom/georgiywebsite",
+    "commit_count": 125
   },
   {
-    "name": "evcc-ai-club",
+    "name": "vibe-teach",
     "stars": 0,
-    "languages": {},
-    "description": null,
-    "url": "https://github.com/floatedbloom/evcc-ai-club"
-  },
-  {
-    "name": "floatedbloom",
-    "stars": 0,
-    "languages": {},
-    "description": null,
-    "url": "https://github.com/floatedbloom/floatedbloom"
+    "languages": {
+      "Python": 28320
+    },
+    "description": "OSS4AI April 2025 Winning Submission",
+    "url": "https://github.com/floatedbloom/vibe-teach",
+    "commit_count": 35
   },
   {
     "name": "flutter_recipes",
@@ -38,7 +34,8 @@
       "Objective-C": 38
     },
     "description": "Recipe sharing app made in flutter",
-    "url": "https://github.com/floatedbloom/flutter_recipes"
+    "url": "https://github.com/floatedbloom/flutter_recipes",
+    "commit_count": 18
   },
   {
     "name": "george_clubs",
@@ -50,29 +47,8 @@
       "HTML": 369
     },
     "description": "Website showcasing info and leadership of math club, CS club, chess club, and ping pong club.",
-    "url": "https://github.com/floatedbloom/george_clubs"
-  },
-  {
-    "name": "georgiywebsite",
-    "stars": 0,
-    "languages": {
-      "Astro": 83506,
-      "JavaScript": 109
-    },
-    "description": "My personal website.",
-    "url": "https://github.com/floatedbloom/georgiywebsite"
-  },
-  {
-    "name": "ls-slugs-chess",
-    "stars": 0,
-    "languages": {
-      "JavaScript": 2333,
-      "HTML": 1721,
-      "TypeScript": 1634,
-      "CSS": 930
-    },
-    "description": "The website for the Lake Stevens Slugs chess team.",
-    "url": "https://github.com/floatedbloom/ls-slugs-chess"
+    "url": "https://github.com/floatedbloom/george_clubs",
+    "commit_count": 8
   },
   {
     "name": "mobile_platformer",
@@ -90,43 +66,7 @@
       "CMake": 426
     },
     "description": "Flappy bird clone",
-    "url": "https://github.com/floatedbloom/mobile_platformer"
-  },
-  {
-    "name": "privacypolicy",
-    "stars": 0,
-    "languages": {
-      "HTML": 138376
-    },
-    "description": null,
-    "url": "https://github.com/floatedbloom/privacypolicy"
-  },
-  {
-    "name": "sudoku-solver",
-    "stars": 0,
-    "languages": {
-      "C": 8188
-    },
-    "description": "Sudoku solver to practice C programming.",
-    "url": "https://github.com/floatedbloom/sudoku-solver"
-  },
-  {
-    "name": "taskmanagerfx",
-    "stars": 0,
-    "languages": {
-      "Java": 22924,
-      "CSS": 101
-    },
-    "description": "Simple JavaFX task manager created for my CS143 final.",
-    "url": "https://github.com/floatedbloom/taskmanagerfx"
-  },
-  {
-    "name": "vibe-teach",
-    "stars": 0,
-    "languages": {
-      "Python": 28320
-    },
-    "description": "OSS4AI April 2025 Winning Submission",
-    "url": "https://github.com/floatedbloom/vibe-teach"
+    "url": "https://github.com/floatedbloom/mobile_platformer",
+    "commit_count": 4
   }
 ]
