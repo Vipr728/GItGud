@@ -30,28 +30,36 @@ def get_user_repos(username):
 
 def download_repo_contents(username, repo_name):
     repo = g.get_repo(f"{username}/{repo_name}")
-    
+
+    # Create a special downloads folder
+    downloads_folder = "downloads"
+    os.makedirs(downloads_folder, exist_ok=True)
+
     # Get all files recursively
     contents = repo.get_contents("")
-    
+
     while contents:
         file_content = contents.pop(0)
         if file_content.type == "dir":
             contents.extend(repo.get_contents(file_content.path))
         else:
-            # Create directory structure
-            os.makedirs(os.path.dirname(file_content.path), exist_ok=True)
-            
+            # Handle root-level files
+            directory = os.path.join(downloads_folder, os.path.dirname(file_content.path))
+            if directory:  # Only create directories if the path is not empty
+                os.makedirs(directory, exist_ok=True)
+
             # Download file
-            with open(file_content.path, "wb") as f:
+            file_path = os.path.join(downloads_folder, file_content.path)
+            with open(file_path, "wb") as f:
                 f.write(file_content.decoded_content)
-                
-    print(f"Downloaded {repo_name} successfully")
+
+    print(f"Downloaded {repo_name} successfully into {downloads_folder}")
 
 # Usage
-repos = get_user_repos("torvalds")
+repos = get_user_repos("floatedbloom")
 with open("repos.json", "w") as f:
     json.dump(repos, f, indent=2)
-download_repo_contents("torvalds", (repo['name'] for repo in repos))
 
-#who, what where how why when
+# Download contents for each repository
+for repo in repos:
+    download_repo_contents("floatedbloom", repo['name'])

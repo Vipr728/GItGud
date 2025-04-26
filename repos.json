@@ -1,120 +1,132 @@
 [
   {
-    "name": "1590A",
-    "stars": 277,
+    "name": "bloomquiz",
+    "stars": 0,
+    "languages": {
+      "HTML": 18595,
+      "Python": 11594,
+      "CSS": 1374
+    },
+    "description": "A website creating and taking quizzes.",
+    "url": "https://github.com/floatedbloom/bloomquiz"
+  },
+  {
+    "name": "evcc-ai-club",
+    "stars": 0,
     "languages": {},
-    "description": "Random odd guitar pedal design in kicad",
-    "url": "https://github.com/torvalds/1590A"
+    "description": null,
+    "url": "https://github.com/floatedbloom/evcc-ai-club"
   },
   {
-    "name": "libdc-for-dirk",
-    "stars": 258,
-    "languages": {
-      "C": 1374766,
-      "M4": 21951,
-      "Makefile": 5041,
-      "C++": 1100
-    },
-    "description": "Only use for syncing with Dirk, don't use for anything else",
-    "url": "https://github.com/torvalds/libdc-for-dirk"
+    "name": "floatedbloom",
+    "stars": 0,
+    "languages": {},
+    "description": null,
+    "url": "https://github.com/floatedbloom/floatedbloom"
   },
   {
-    "name": "libgit2",
-    "stars": 181,
+    "name": "flutter_recipes",
+    "stars": 0,
     "languages": {
-      "C": 7731824,
-      "CMake": 74521,
-      "Shell": 37678,
-      "Python": 16847
+      "Dart": 61272,
+      "C++": 24229,
+      "CMake": 19490,
+      "Swift": 2074,
+      "C": 1425,
+      "HTML": 1234,
+      "Kotlin": 128,
+      "Objective-C": 38
     },
-    "description": "A cross-platform, linkable library implementation of Git that you can use in your application.",
-    "url": "https://github.com/torvalds/libgit2"
+    "description": "Recipe sharing app made in flutter",
+    "url": "https://github.com/floatedbloom/flutter_recipes"
   },
   {
-    "name": "linux",
-    "stars": 192291,
+    "name": "george_clubs",
+    "stars": 0,
     "languages": {
-      "C": 1348498921,
-      "Assembly": 9632953,
-      "Shell": 5161578,
-      "Python": 3114728,
-      "Makefile": 2735488,
-      "Perl": 1223890,
-      "Rust": 1035371,
-      "Roff": 205261,
-      "C++": 180233,
-      "SmPL": 166781,
-      "Yacc": 128672,
-      "Lex": 72476,
-      "Awk": 71808,
-      "Jinja": 30138,
-      "UnrealScript": 16878,
-      "Gherkin": 10932,
-      "Linker Script": 9830,
-      "M4": 3329,
-      "Clojure": 2621,
-      "MATLAB": 2482,
-      "sed": 2433,
-      "XS": 1239,
-      "RPC": 962
+      "TypeScript": 15918,
+      "CSS": 2754,
+      "JavaScript": 734,
+      "HTML": 369
     },
-    "description": "Linux kernel source tree",
-    "url": "https://github.com/torvalds/linux"
+    "description": "Website showcasing info and leadership of math club, CS club, chess club, and ping pong club.",
+    "url": "https://github.com/floatedbloom/george_clubs"
   },
   {
-    "name": "pesconvert",
-    "stars": 431,
+    "name": "georgiywebsite",
+    "stars": 0,
     "languages": {
-      "C": 12452,
-      "Makefile": 555
+      "Astro": 83506,
+      "JavaScript": 109
     },
-    "description": "Brother PES file converter",
-    "url": "https://github.com/torvalds/pesconvert"
+    "description": "My personal website.",
+    "url": "https://github.com/floatedbloom/georgiywebsite"
   },
   {
-    "name": "subsurface-for-dirk",
-    "stars": 323,
+    "name": "ls-slugs-chess",
+    "stars": 0,
     "languages": {
-      "C++": 2736799,
-      "C": 1205956,
-      "XSLT": 291922,
-      "QML": 270918,
-      "Shell": 152678,
-      "CMake": 77145,
-      "JavaScript": 41191,
-      "HTML": 36487,
-      "Java": 19782,
-      "Perl": 19749,
-      "TeX": 19220,
-      "CSS": 12885,
-      "QMake": 12652,
-      "Dockerfile": 8499,
-      "Makefile": 6648,
-      "Objective-C++": 5497,
-      "R": 4070
+      "JavaScript": 2333,
+      "HTML": 1721,
+      "TypeScript": 1634,
+      "CSS": 930
     },
-    "description": "Do not use - the real upstream is  Subsurface-divelog/subsurface",
-    "url": "https://github.com/torvalds/subsurface-for-dirk"
+    "description": "The website for the Lake Stevens Slugs chess team.",
+    "url": "https://github.com/floatedbloom/ls-slugs-chess"
   },
   {
-    "name": "test-tlb",
-    "stars": 769,
+    "name": "mobile_platformer",
+    "stars": 2,
     "languages": {
-      "C": 5816,
-      "Makefile": 422
+      "C#": 38780872,
+      "Java": 102560,
+      "ShaderLab": 91802,
+      "Objective-C": 42504,
+      "C++": 17765,
+      "HLSL": 17294,
+      "Objective-C++": 12933,
+      "GAP": 9254,
+      "C": 2638,
+      "CMake": 426
     },
-    "description": "Stupid memory latency and TLB tester",
-    "url": "https://github.com/torvalds/test-tlb"
+    "description": "Flappy bird clone",
+    "url": "https://github.com/floatedbloom/mobile_platformer"
   },
   {
-    "name": "uemacs",
-    "stars": 1338,
+    "name": "privacypolicy",
+    "stars": 0,
     "languages": {
-      "C": 456678,
-      "Makefile": 4592,
-      "Batchfile": 944
+      "HTML": 138376
     },
-    "description": "Random version of microemacs with my private modificatons",
-    "url": "https://github.com/torvalds/uemacs"
+    "description": null,
+    "url": "https://github.com/floatedbloom/privacypolicy"
+  },
+  {
+    "name": "sudoku-solver",
+    "stars": 0,
+    "languages": {
+      "C": 8188
+    },
+    "description": "Sudoku solver to practice C programming.",
+    "url": "https://github.com/floatedbloom/sudoku-solver"
+  },
+  {
+    "name": "taskmanagerfx",
+    "stars": 0,
+    "languages": {
+      "Java": 22924,
+      "CSS": 101
+    },
+    "description": "Simple JavaFX task manager created for my CS143 final.",
+    "url": "https://github.com/floatedbloom/taskmanagerfx"
+  },
+  {
+    "name": "vibe-teach",
+    "stars": 0,
+    "languages": {
+      "Python": 28320
+    },
+    "description": "OSS4AI April 2025 Winning Submission",
+    "url": "https://github.com/floatedbloom/vibe-teach"
   }
 ]
