@@ -1,0 +1,120 @@
+[
+  {
+    "name": "1590A",
+    "stars": 277,
+    "languages": {},
+    "description": "Random odd guitar pedal design in kicad",
+    "url": "https://github.com/torvalds/1590A"
+  },
+  {
+    "name": "libdc-for-dirk",
+    "stars": 258,
+    "languages": {
+      "C": 1374766,
+      "M4": 21951,
+      "Makefile": 5041,
+      "C++": 1100
+    },
+    "description": "Only use for syncing with Dirk, don't use for anything else",
+    "url": "https://github.com/torvalds/libdc-for-dirk"
+  },
+  {
+    "name": "libgit2",
+    "stars": 181,
+    "languages": {
+      "C": 7731824,
+      "CMake": 74521,
+      "Shell": 37678,
+      "Python": 16847
+    },
+    "description": "A cross-platform, linkable library implementation of Git that you can use in your application.",
+    "url": "https://github.com/torvalds/libgit2"
+  },
+  {
+    "name": "linux",
+    "stars": 192291,
+    "languages": {
+      "C": 1348498921,
+      "Assembly": 9632953,
+      "Shell": 5161578,
+      "Python": 3114728,
+      "Makefile": 2735488,
+      "Perl": 1223890,
+      "Rust": 1035371,
+      "Roff": 205261,
+      "C++": 180233,
+      "SmPL": 166781,
+      "Yacc": 128672,
+      "Lex": 72476,
+      "Awk": 71808,
+      "Jinja": 30138,
+      "UnrealScript": 16878,
+      "Gherkin": 10932,
+      "Linker Script": 9830,
+      "M4": 3329,
+      "Clojure": 2621,
+      "MATLAB": 2482,
+      "sed": 2433,
+      "XS": 1239,
+      "RPC": 962
+    },
+    "description": "Linux kernel source tree",
+    "url": "https://github.com/torvalds/linux"
+  },
+  {
+    "name": "pesconvert",
+    "stars": 431,
+    "languages": {
+      "C": 12452,
+      "Makefile": 555
+    },
+    "description": "Brother PES file converter",
+    "url": "https://github.com/torvalds/pesconvert"
+  },
+  {
+    "name": "subsurface-for-dirk",
+    "stars": 323,
+    "languages": {
+      "C++": 2736799,
+      "C": 1205956,
+      "XSLT": 291922,
+      "QML": 270918,
+      "Shell": 152678,
+      "CMake": 77145,
+      "JavaScript": 41191,
+      "HTML": 36487,
+      "Java": 19782,
+      "Perl": 19749,
+      "TeX": 19220,
+      "CSS": 12885,
+      "QMake": 12652,
+      "Dockerfile": 8499,
+      "Makefile": 6648,
+      "Objective-C++": 5497,
+      "R": 4070
+    },
+    "description": "Do not use - the real upstream is  Subsurface-divelog/subsurface",
+    "url": "https://github.com/torvalds/subsurface-for-dirk"
+  },
+  {
+    "name": "test-tlb",
+    "stars": 769,
+    "languages": {
+      "C": 5816,
+      "Makefile": 422
+    },
+    "description": "Stupid memory latency and TLB tester",
+    "url": "https://github.com/torvalds/test-tlb"
+  },
+  {
+    "name": "uemacs",
+    "stars": 1338,
+    "languages": {
+      "C": 456678,
+      "Makefile": 4592,
+      "Batchfile": 944
+    },
+    "description": "Random version of microemacs with my private modificatons",
+    "url": "https://github.com/torvalds/uemacs"
+  }
+]
