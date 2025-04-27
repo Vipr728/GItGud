@@ -26,6 +26,13 @@
         <p>Fetching repositories...</p>
         <p class="loading-status">This may take a little while</p>
     </div>
+
+    <!-- New loading element for analyzing repos -->
+    <div id="analyzing-loading" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Analyzing repository...</p>
+        <p class="loading-status">This may take a minute or two</p>
+    </div>
     
     <div class="container">
         <!-- Add SVG GitHub logo before the GitGud heading -->
@@ -34,7 +41,7 @@
                 <defs>
                     <linearGradient id="github-gradient" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stop-color="#6366F1"/>
-                        <stop offset="100%" stop-color="#EC4899"/>
+                        <stop offset="100%" stop-color="#A78BFA"/>
                     </linearGradient>
                 </defs>
                 <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
@@ -150,6 +157,10 @@
             document.getElementById('loading').style.display = 'block';
         }
 
+        function showAnalyzingLoading() {
+            document.getElementById('analyzing-loading').style.display = 'block';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const themeToggle = document.getElementById('theme-toggle');
             const htmlElement = document.documentElement;
@@ -200,6 +211,16 @@
                     card.classList.add('visible');
                 });
             }
+
+            // Show analyzing loading when analyze prompt is clicked
+            document.querySelectorAll('.analyze-prompt').forEach(function(el) {
+                el.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                    showAnalyzingLoading();
+                    // Optionally, you may want to redirect after a short delay
+                    // setTimeout(() => { ... }, 300);
+                });
+            });
         });
     </script>
 </body>

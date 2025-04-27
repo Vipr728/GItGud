@@ -38,6 +38,8 @@ RATE_LIMIT_DELAY = 2  # Delay between API requests in seconds
 # Flag to track if the queue processor is running
 queue_processor_running = False
 
+analysis_progress = {}  # { (username, repo_name): current_file }
+
 # Function to process the API request queue
 def process_api_queue():
     global queue_processor_running
@@ -188,7 +190,7 @@ def analyze_repo(username, repo):
     if username in repo_cache and repo['name'] in repo_cache[username]:
         print(f"Using cached analysis for {username}/{repo['name']}")
         return repo_cache[username][repo['name']]
-    
+
     repo_results = {
         'name': repo['name'],
         'security': {'score': 'N/A', 'concerns': []},
@@ -256,6 +258,7 @@ def analyze_repo(username, repo):
             quality_results = []
             
             for path, content in sample_files:
+                analysis_progress[(username, repo['name'])] = path  # Update progress
                 # Run each analysis type
                 try:
                     security_result = evaluate_security(content, path)
@@ -865,6 +868,11 @@ def save_repo_data(username, repo_name, repo_data):
     if username not in repo_cache:
         repo_cache[username] = {}
     repo_cache[username][repo_name] = repo_data
+
+@app.route('/analyze_progress/<username>/<repo_name>')
+def analyze_progress_status(username, repo_name):
+    current_file = analysis_progress.get((username, repo_name))
+    return jsonify({'file': current_file})
 
 # Ensure non-Flask logic is executed only when not running the Flask app
 if __name__ == "__main__":
