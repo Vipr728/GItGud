@@ -806,7 +806,7 @@ html, body, * {
                             </div>
                         {% else %}
                             <!-- Display "Click to analyze" for unanalyzed repos -->
-                            <div class="analyze-prompt">
+                            <div class="analyze-prompt" onclick="window.location.href='/repo_details/{{ username }}/{{ repo.name }}'">
                                 <div class="analyze-message">Click to analyze this repository</div>
                                 <div class="analyze-icon">🔍</div>
                             </div>
@@ -877,13 +877,21 @@ html, body, * {
                 });
             }
 
-            // Show analyzing loading when analyze prompt is clicked
+            // Show analyzing loading and redirect to analysis route
             document.querySelectorAll('.analyze-prompt').forEach(function(el) {
                 el.addEventListener('click', function(event) {
                     event.stopPropagation();
                     showAnalyzingLoading();
-                    // Optionally, you may want to redirect after a short delay
-                    // setTimeout(() => { ... }, 300);
+
+                    // Find the parent .repo-card to get repo name and username
+                    const card = el.closest('.repo-card');
+                    const username = "{{ username }}";
+                    const repoName = card.querySelector('h3').textContent.trim();
+
+                    // Redirect after a short delay (optional, for loading effect)
+                    setTimeout(function() {
+                        window.location.href = `/repo_details/${username}/${repoName}`;
+                    }, 300);
                 });
             });
         });
