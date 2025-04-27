@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ repo.name }} - GitHub Doctor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .repo-meta {
+            margin-bottom: 2rem;
+            color: #64748b;
+        }
+
+        .repo-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-top: 0.5rem;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+
+        .repo-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .back-link {
+            color: var(--text-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 0.5rem;
+        }
+
+        .analysis-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .score-card {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .score-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .score-high {
+            background-color: var(--success-color);
+        }
+
+        .score-medium {
+            background-color: var(--warning-color);
+        }
+
+        .score-low {
+            background-color: var(--error-color);
+        }
+
+        .score-na {
+            background-color: #94a3b8;
+        }
+
+        .concerns-list {
+            list-style-type: none;
+        }
+
+        .concerns-list li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .concerns-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .languages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .language-tag {
+            background-color: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .no-concerns {
+            color: var(--success-color);
+            font-style: italic;
+        }
+
+        .overall-score-section {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .overall-score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 600;
+            color: white;
+            margin: 0 auto 1rem;
+        }
+
+        .overall-score-label {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .score-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .score-circle {
+                margin-bottom: 1rem;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/?username={{ username }}" class="back-link">Back to all repositories</a>
+        
+        <h1>{{ repo.name }}</h1>
+        <div class="repo-meta">
+            {% if repo.description %}
+                <p>{{ repo.description }}</p>
+            {% endif %}
+            
+            {% if repo.languages %}
+                <div class="languages">
+                    {% for language, bytes in repo.languages.items() %}
+                        <span class="language-tag">{{ language }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% if repo.url %}
+                <a href="{{ repo.url }}" target="_blank" class="repo-link">View on GitHub</a>
+            {% endif %}
+        </div>
+        
+        <!-- Overall Score -->
+        <div class="overall-score-section">
+            <h2 class="section-title">Overall ELO</h2>
+            
+            {% if repo.overall_score == "N/A" or repo.overall_score == "Error" %}
+                <div class="overall-score-circle score-na">N/A</div>
+            {% else %}
+                {% set score = repo.overall_score|float|round|int %}
+                {% if score >= 70 %}
+                    <div class="overall-score-circle score-high">{{ score }}</div>
+                {% elif score >= 40 %}
+                    <div class="overall-score-circle score-medium">{{ score }}</div>
+                {% else %}
+                    <div class="overall-score-circle score-low">{{ score }}</div>
+                {% endif %}
+            {% endif %}
+            
+            <p class="overall-score-label">Average of security, efficiency, and code quality</p>
+        </div>
+        
+        <!-- Security Analysis -->
+        <div class="analysis-section">
+            <h2 class="section-title">Security Analysis</h2>
+            
+            <div class="score-card">
+                {% if repo.security.score == "N/A" or repo.security.score == "Error" %}
+                    <div class="score-circle score-na">N/A</div>
+                {% else %}
+                    {% set score = repo.security.score|float|round|int %}
+                    {% if score >= 70 %}
+                        <div class="score-circle score-high">{{ score }}</div>
+                    {% elif score >= 40 %}
+                        <div class="score-circle score-medium">{{ score }}</div>
+                    {% else %}
+                        <div class="score-circle score-low">{{ score }}</div>
+                    {% endif %}
+                {% endif %}
+                
+                <div>
+                    {% if repo.security.concerns %}
+                        <ul class="concerns-list">
+                            {% for concern in repo.security.concerns %}
+                                <li>{{ concern }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-concerns">No security concerns detected</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Efficiency Analysis -->
+        <div class="analysis-section">
+            <h2 class="section-title">Efficiency Analysis</h2>
+            
+            <div class="score-card">
+                {% if repo.efficiency.score == "N/A" or repo.efficiency.score == "Error" %}
+                    <div class="score-circle score-na">N/A</div>
+                {% else %}
+                    {% set score = repo.efficiency.score|float|round|int %}
+                    {% if score >= 70 %}
+                        <div class="score-circle score-high">{{ score }}</div>
+                    {% elif score >= 40 %}
+                        <div class="score-circle score-medium">{{ score }}</div>
+                    {% else %}
+                        <div class="score-circle score-low">{{ score }}</div>
+                    {% endif %}
+                {% endif %}
+                
+                <div>
+                    {% if repo.efficiency.concerns %}
+                        <ul class="concerns-list">
+                            {% for concern in repo.efficiency.concerns %}
+                                <li>{{ concern }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-concerns">No efficiency concerns detected</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Code Quality Analysis -->
+        <div class="analysis-section">
+            <h2 class="section-title">Code Quality Analysis</h2>
+            
+            <div class="score-card">
+                {% if repo.quality.score == "N/A" or repo.quality.score == "Error" %}
+                    <div class="score-circle score-na">N/A</div>
+                {% else %}
+                    {% set score = repo.quality.score|float|round|int %}
+                    {% if score >= 70 %}
+                        <div class="score-circle score-high">{{ score }}</div>
+                    {% elif score >= 40 %}
+                        <div class="score-circle score-medium">{{ score }}</div>
+                    {% else %}
+                        <div class="score-circle score-low">{{ score }}</div>
+                    {% endif %}
+                {% endif %}
+                
+                <div>
+                    {% if repo.quality.concerns %}
+                        <ul class="concerns-list">
+                            {% for concern in repo.quality.concerns %}
+                                <li>{{ concern }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="no-concerns">No code quality concerns detected</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

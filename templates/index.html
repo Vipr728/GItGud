@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Doctor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .repo-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .repo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .repo-card::after {
+            content: '→';
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .repo-card:hover::after {
+            opacity: 1;
+        }
+
+        .repo-languages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .language-tag {
+            background-color: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .repo-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .score {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-label {
+            font-weight: 500;
+            margin-right: 0.5rem;
+            min-width: 100px;
+        }
+
+        .score-value {
+            font-weight: 600;
+        }
+
+        .overall-score {
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+            text-align: center;
+            padding-top: 20%;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        #loading p {
+            margin-top: 1rem;
+        }
+
+        .loading-status {
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid var(--error-color);
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .actions-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        .badge-link {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .badge-link:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <p>Analyzing repositories...</p>
+        <p class="loading-status">This may take a little while</p>
+    </div>
+    
+    <div class="container">
+        <h1>GitHub Doctor</h1>
+        
+        {% if error %}
+            <div class="error-message">
+                <p>{{ error }}</p>
+                <p>Please try a different username or try again later.</p>
+            </div>
+        {% endif %}
+        
+        <div class="form-container">
+            <form method="POST" onsubmit="showLoading()">
+                <div class="form-group">
+                    <label for="username">GitHub Username:</label>
+                    <input type="text" id="username" name="username" required placeholder="Enter GitHub username">
+                    <button type="submit">Analyze</button>
+                </div>
+            </form>
+        </div>
+
+        {% if results %}
+            <div class="actions-container">
+                <a href="/readme-badge/{{ username }}" class="badge-link">Generate GitHub README Badge</a>
+            </div>
+
+            <div class="repo-grid">
+                {% for repo in results %}
+                    <div class="repo-card" onclick="window.location.href='/repo/{{ username }}/{{ repo.name }}'">
+                        <h3>{{ repo.name }}</h3>
+                        {% if repo.description %}
+                            <p class="repo-description">{{ repo.description }}</p>
+                        {% endif %}
+                        <div class="repo-languages">
+                            {% for language, bytes in repo.languages.items() %}
+                                <span class="language-tag">{{ language }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="score">
+                            <span class="score-label">Security:</span>
+                            <span class="score-value">
+                                {% if repo.security.score == "N/A" or repo.security.score == "Error" %}
+                                    {{ repo.security.score }}
+                                {% else %}
+                                    {{ repo.security.score|float|round|int }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="score">
+                            <span class="score-label">Efficiency:</span>
+                            <span class="score-value">
+                                {% if repo.efficiency.score == "N/A" or repo.efficiency.score == "Error" %}
+                                    {{ repo.efficiency.score }}
+                                {% else %}
+                                    {{ repo.efficiency.score|float|round|int }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="score">
+                            <span class="score-label">Quality:</span>
+                            <span class="score-value">
+                                {% if repo.quality.score == "N/A" or repo.quality.score == "Error" %}
+                                    {{ repo.quality.score }}
+                                {% else %}
+                                    {{ repo.quality.score|float|round|int }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <!-- Overall GitHub ELO Score -->
+                        <div class="overall-score">
+                            Overall ELO: 
+                            {% if repo.overall_score == "N/A" or repo.overall_score == "Error" %}
+                                {{ repo.overall_score }}
+                            {% else %}
+                                {{ repo.overall_score|float|round|int }}
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -2,20 +2,29 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-#LOAD API KEYS
 load_dotenv()
-APIKEY = os.getenv("NVIDIA_NIM_API_KEY_EFFICIENCY")
+APIKEY = os.getenv("NVIDIA_NIM_API_KEY_SECURITY")
 
 
-def evaluate_efficiency(code: str, file_path: str = "") -> dict:
+prompt = [
+    "You are a security expert. Your task is to evaluate the security of the provided code. "
+    "Identify potential vulnerabilities, security flaws, and best practices. "
+    "give a score from 0 to 100 based on the security of the code. "
+    "Provide a detailed explanation of your evaluation, including any suggestions for improvement. "
+    "If the code is secure, provide a score of 100 and a brief explanation. "
+    "give this out in a json format with the following keys: "
+    "'score', 'explanation', 'suggestions'. "
+    "The code is as follows: "
+
+]
+def evaluate_security(code: str, file_path: str = "") -> dict:
     """
-    Analyze the efficiency of the given code using DeepSeek AI.
-    Returns a dict with score and improvement suggestions with line citations.
+    Evaluates the security of the given code using the NVIDIA API.
+    Returns a dict with score and concerns with line citations.
     """
-
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=APIKEY,
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=APIKEY,
     )
 
     # Use a threading-based timeout instead of signal (which doesn't work on Windows)
@@ -31,26 +40,26 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                     model="deepseek-ai/deepseek-r1-distill-qwen-7b",
                     messages=[
                         {"role": "user", "content": f"""
-                        Analyze the efficiency of the following code and rate it on a scale of 0-100 
-                        with 0 being completely inefficient with major performance issues and 100 being perfectly optimized with no room for improvement.
+                        Analyze the security of the following code and rate it on a scale of 0-100 
+                        with 0 being completely insecure with major vulnerabilities and 100 being perfectly secure with no room for improvement.
                         
                         Rules for scoring:
                         1. Score should be a multiple of 5 (e.g., 65, 70, 75)
                         2. Perfect or near-perfect code should get a score of 95-100
-                        3. Completely inefficient code should get a score of 0-5
+                        3. Completely insecure code should get a score of 0-5
                         4. Average code should be scored around 50-55
                         
-                        Identify the top efficiency concerns if any exist. For each concern:
+                        Identify the top security concerns if any exist. For each concern:
                         1. Provide the exact line number(s) where the issue occurs
-                        2. Briefly explain the efficiency issue
-                        3. Suggest a more efficient approach
+                        2. Briefly explain the security issue
+                        3. Suggest a fix
                         
                         Format your response as a JSON object with the following structure:
                         {{
                             "score": <number between 0-100 in multiples of 5>,
                             "concerns": [
-                                "Line <line_number>: <brief description of issue> - <suggested optimization>",
-                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested optimization>",
+                                "Line <line_number>: <brief description of issue> - <suggested fix>",
+                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested fix>",
                                 ...
                             ]
                         }}
@@ -114,18 +123,18 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 return {"score": "50", "concerns": ["Unable to extract valid analysis"]}
             
             except TimeoutError:
-                print("Efficiency evaluation timed out")
+                print("Security evaluation timed out")
                 return {"score": "50", "concerns": ["Analysis timed out"]}
     
     except Exception as e:
-        print(f"Error analyzing efficiency: {e}")
+        print(f"An error occurred in evaluate_security: {str(e)}")
         return {"score": "50", "concerns": [f"Error: {str(e)}"]}
 
-if __name__ == "__main__":
+if __name__ == "main":
     # Example usage
     sample_code = """
 def example_function():
     return sum(range(100))
     """
-    efficiency_analysis = evaluate_efficiency(sample_code)
-    print(f"Efficiency Analysis:\n{efficiency_analysis}")
+    security_feedback = evaluate_security(sample_code)
+    print(f"Security Feedback:\n{security_feedback}")

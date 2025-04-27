@@ -2,14 +2,13 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
-#LOAD API KEYS
+# LOAD API KEYS
 load_dotenv()
-APIKEY = os.getenv("NVIDIA_NIM_API_KEY_EFFICIENCY")
+APIKEY = os.getenv("NVIDIA_NIM_API_KEY_SECURITY")  # Using security key as fallback
 
-
-def evaluate_efficiency(code: str, file_path: str = "") -> dict:
+def evaluate_quality(code: str, file_path: str = "") -> dict:
     """
-    Analyze the efficiency of the given code using DeepSeek AI.
+    Analyze the code quality using DeepSeek AI.
     Returns a dict with score and improvement suggestions with line citations.
     """
 
@@ -18,9 +17,7 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
         api_key=APIKEY,
     )
 
-    # Use a threading-based timeout instead of signal (which doesn't work on Windows)
-    import threading
-    import time
+    # Use a threading-based timeout
     from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
     try:
@@ -31,26 +28,28 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                     model="deepseek-ai/deepseek-r1-distill-qwen-7b",
                     messages=[
                         {"role": "user", "content": f"""
-                        Analyze the efficiency of the following code and rate it on a scale of 0-100 
-                        with 0 being completely inefficient with major performance issues and 100 being perfectly optimized with no room for improvement.
+                        Analyze the quality of the following code and rate it on a scale of 0-100 
+                        with 0 being extremely poor quality code (unreadable, unmaintainable) and 100 being perfect quality code (clean, well-structured, well-documented).
                         
                         Rules for scoring:
                         1. Score should be a multiple of 5 (e.g., 65, 70, 75)
                         2. Perfect or near-perfect code should get a score of 95-100
-                        3. Completely inefficient code should get a score of 0-5
+                        3. Extremely poor quality code should get a score of 0-5
                         4. Average code should be scored around 50-55
                         
-                        Identify the top efficiency concerns if any exist. For each concern:
+                        Consider factors like readability, maintainability, code organization, variable naming, and adherence to best practices.
+                        
+                        Identify the top quality concerns if any exist. For each concern:
                         1. Provide the exact line number(s) where the issue occurs
-                        2. Briefly explain the efficiency issue
-                        3. Suggest a more efficient approach
+                        2. Briefly explain the quality issue
+                        3. Suggest a better approach
                         
                         Format your response as a JSON object with the following structure:
                         {{
                             "score": <number between 0-100 in multiples of 5>,
                             "concerns": [
-                                "Line <line_number>: <brief description of issue> - <suggested optimization>",
-                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested optimization>",
+                                "Line <line_number>: <brief description of issue> - <suggested improvement>",
+                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested improvement>",
                                 ...
                             ]
                         }}
@@ -69,7 +68,7 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 )
                 return completion.choices[0].message.content
             except Exception as e:
-                print(f"API call error: {e}")
+                print(f"API call error in quality evaluation: {e}")
                 return None
         
         # Execute with timeout
@@ -114,11 +113,11 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 return {"score": "50", "concerns": ["Unable to extract valid analysis"]}
             
             except TimeoutError:
-                print("Efficiency evaluation timed out")
+                print("Quality evaluation timed out")
                 return {"score": "50", "concerns": ["Analysis timed out"]}
     
     except Exception as e:
-        print(f"Error analyzing efficiency: {e}")
+        print(f"Error analyzing quality: {e}")
         return {"score": "50", "concerns": [f"Error: {str(e)}"]}
 
 if __name__ == "__main__":
@@ -127,5 +126,5 @@ if __name__ == "__main__":
 def example_function():
     return sum(range(100))
     """
-    efficiency_analysis = evaluate_efficiency(sample_code)
-    print(f"Efficiency Analysis:\n{efficiency_analysis}")
+    quality_analysis = evaluate_quality(sample_code)
+    print(f"Quality Analysis:\n{quality_analysis}")

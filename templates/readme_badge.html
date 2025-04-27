@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Doctor Badge for {{ badge.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .badge-container {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .badge-preview {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: white;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-label {
+            background-color: #555;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .badge-value {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge-value.high {
+            background-color: var(--success-color);
+        }
+
+        .badge-value.medium {
+            background-color: var(--warning-color);
+        }
+
+        .badge-value.low {
+            background-color: var(--error-color);
+        }
+
+        .markdown-container {
+            margin-top: 2rem;
+        }
+
+        .code-block {
+            background-color: #f1f5f9;
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .instructions {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .instructions h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .instructions ol {
+            margin-left: 1.5rem;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub Doctor Badge for {{ badge.username }}</h1>
+        
+        <div class="badge-container">
+            <h2>Preview</h2>
+            <div class="badge-preview">
+                <!-- Overall Score Badge -->
+                <div class="badge">
+                    <span class="badge-label">GitHub Doctor Score</span>
+                    {% if badge.overall != 'N/A' %}
+                        {% if badge.overall >= 70 %}
+                            <span class="badge-value high">{{ badge.overall }}</span>
+                        {% elif badge.overall >= 40 %}
+                            <span class="badge-value medium">{{ badge.overall }}</span>
+                        {% else %}
+                            <span class="badge-value low">{{ badge.overall }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge-value">N/A</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="markdown-container">
+                <h3>Markdown Code</h3>
+                <p>Copy and paste this into your GitHub README.md:</p>
+                
+                <div class="code-block" id="markdown-code">
+[![GitHub Doctor Score](https://img.shields.io/badge/GitHub_Doctor_Score-{{ badge.overall if badge.overall != 'N/A' else 'N%2FA' }}-{% if badge.overall != 'N/A' %}{% if badge.overall >= 70 %}success{% elif badge.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](https://github-doctor.example.com/{{ badge.username }})
+
+**Security:** {{ badge.security if badge.security != 'N/A' else 'N/A' }} | **Efficiency:** {{ badge.efficiency if badge.efficiency != 'N/A' else 'N/A' }} | **Quality:** {{ badge.quality if badge.quality != 'N/A' else 'N/A' }}
+                </div>
+                
+                <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Add This Badge to Your GitHub Profile</h3>
+            <ol>
+                <li>Copy the markdown code above.</li>
+                <li>Go to your GitHub profile README.md file (usually in a repository named the same as your username).</li>
+                <li>Paste the code where you want the badge to appear.</li>
+                <li>Commit the changes.</li>
+            </ol>
+            <p>The badge will link back to your GitHub Doctor analysis.</p>
+        </div>
+        
+        <a href="/?username={{ badge.username }}" class="back-link">← Back to Repository Analysis</a>
+    </div>
+    
+    <script>
+        function copyToClipboard() {
+            const codeBlock = document.getElementById('markdown-code');
+            const textArea = document.createElement('textarea');
+            textArea.value = codeBlock.textContent.trim();
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }
+    </script>
+</body>
+</html> 
