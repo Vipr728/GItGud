@@ -216,18 +216,28 @@
         }
 
         .repo-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            background-color: var(--container-bg);
             border-radius: 8px;
+            border: 1px solid var(--border-color);
             padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
-            cursor: pointer;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.4s ease;
+            display: flex;
+            flex-direction: column;
             position: relative;
+            will-change: transform;
+            contain: content;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .repo-card.visible {
+            opacity: 1;
         }
 
         .repo-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--card-hover-shadow);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         }
 
         .repo-card::after {
@@ -459,6 +469,23 @@
             font-size: 1rem;
             color: var(--text-color);
         }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, 
+                var(--container-bg) 25%, 
+                rgba(206, 206, 206, 0.15) 50%, 
+                var(--container-bg) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            height: 18px;
+            margin-bottom: 8px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0 }
+            100% { background-position: -200% 0 }
+        }
     </style>
 </head>
 <body>
@@ -476,7 +503,7 @@
 
     <div id="loading">
         <div class="loading-spinner"></div>
-        <p>Analyzing repositories...</p>
+        <p>Fetching repositories...</p>
         <p class="loading-status">This may take a little while</p>
     </div>
     
@@ -495,8 +522,8 @@
             <form method="POST" onsubmit="showLoading()">
                 <div class="form-group">
                     <label for="username">GitHub Username:</label>
-                    <input type="text" id="username" name="username" required placeholder="Enter GitHub username">
-                    <button type="submit">Analyze</button>
+                    <input type="text" id="username" name="username" required placeholder="Enter GitHub Username">
+                    <button type="submit">Fetch Repos</button>
                 </div>
             </form>
         </div>
@@ -585,31 +612,55 @@
             document.getElementById('loading').style.display = 'block';
         }
 
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('theme-toggle');
-        const htmlElement = document.documentElement;
-        
-        // Check for saved theme preference or use device preference
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme) {
-            htmlElement.setAttribute('data-theme', savedTheme);
-            themeToggle.checked = savedTheme === 'dark';
-        } else {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (prefersDark) {
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const htmlElement = document.documentElement;
+            
+            // Theme toggle functionality
+            themeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    htmlElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
                 htmlElement.setAttribute('data-theme', 'dark');
                 themeToggle.checked = true;
             }
-        }
-        
-        // Toggle theme on switch change
-        themeToggle.addEventListener('change', function() {
-            if (this.checked) {
-                htmlElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('theme', 'dark');
+            
+            // Performance optimization for repository cards
+            const repoCards = document.querySelectorAll('.repo-card');
+            
+            // Optimize loading with IntersectionObserver if available
+            if ('IntersectionObserver' in window) {
+                const observerOptions = {
+                    rootMargin: '100px',
+                    threshold: 0.1
+                };
+                
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, observerOptions);
+                
+                repoCards.forEach(card => {
+                    observer.observe(card);
+                });
             } else {
-                htmlElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('theme', 'light');
+                // Fallback for browsers without IntersectionObserver
+                repoCards.forEach(card => {
+                    card.classList.add('visible');
+                });
             }
         });
     </script>

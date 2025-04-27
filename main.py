@@ -120,59 +120,68 @@ def analyze_and_display_repos(username):
         return render_template('index.html', error=f"Error: {str(e)}")
 
 def get_user_repos(username, timeout=30, limit=None):
-    """Get repositories for a user using the API, with optional limit"""
+    """Get all public repositories for a GitHub user"""
     try:
+        # Check if we have cached data for this username
+        if username in user_cache:
+            print(f"Using cached repository list for {username}")
+            cached_repos = user_cache[username]
+            # If limit is specified, return only that many repos
+            if limit and len(cached_repos) > limit:
+                return cached_repos[:limit]
+            return cached_repos
+        
+        print(f"Fetching repositories for {username}")
+        
+        # Fetch from GitHub API if not in cache
+        start_time = time.time()
         user = g.get_user(username)
         repos = []
-
-        import time
-        start_time = time.time()
         
+        # Get repository data
         for repo in user.get_repos():
-            # Check timeout
             if time.time() - start_time > timeout:
-                print(f"Timeout reached when fetching repos for {username}")
+                print(f"Timeout exceeded for {username}, returning partial results")
+                if repos:
+                    # Cache the partial results we have
+                    user_cache[username] = repos
+                    return repos
                 break
-                
+            
             try:
-                # Get the number of commits for the repository with a small timeout
-                commit_count = 0
-                try:
-                    # Try to get commit count with timeout
-                    commit_count = repo.get_commits().totalCount
-                except Exception as commit_error:
-                    print(f"Error getting commits for {repo.name}: {commit_error}")
-                    commit_count = 0
+                # Get programming languages
+                languages = repo.get_languages()
                 
-                repo_data = {
-                    "name": repo.name,
-                    "stars": repo.stargazers_count,
-                    "languages": repo.get_languages(),
-                    "description": repo.description,
-                    "url": repo.html_url,
-                    "commit_count": commit_count
-                }
-                repos.append(repo_data)
-                
-                # If we have reached the limit, break early
-                if limit and len(repos) >= limit:
-                    break
+                # Only include non-empty repositories with code
+                if languages:  # Skip empty repos
+                    repo_data = {
+                        'name': repo.name,
+                        'description': repo.description,
+                        'url': repo.html_url,
+                        'languages': languages,
+                        'size': repo.size,
+                        'fork': repo.fork,
+                        'stargazers_count': repo.stargazers_count,
+                        # Initialize metrics structures
+                        'security': {'score': 'N/A', 'concerns': []},
+                        'efficiency': {'score': 'N/A', 'concerns': []},
+                        'quality': {'score': 'N/A', 'concerns': []},
+                        'analyzed': False  # Mark as not yet analyzed
+                    }
+                    repos.append(repo_data)
+                    if limit and len(repos) >= limit:
+                        break
             except Exception as e:
-                print(f"Error fetching repo {repo.name}: {e}")
-
-        # Sort by stars if commit count is not reliable
-        if not any(r["commit_count"] > 0 for r in repos) and repos:
-            repos = sorted(repos, key=lambda x: x["stars"], reverse=True)
-        else:
-            repos = sorted(repos, key=lambda x: x["commit_count"], reverse=True)
-            
-        # Apply limit if specified
-        if limit:
-            repos = repos[:limit]
-            
+                print(f"Error processing repository {repo.name}: {e}")
+                continue
+        
+        # Cache the results if we got any
+        if repos:
+            user_cache[username] = repos
+        
         return repos
     except Exception as e:
-        print(f"Error in get_user_repos: {e}")
+        print(f"Error getting repositories for {username}: {e}")
         return []
 
 async def analyze_repo_async(username, repo):
@@ -527,6 +536,7 @@ def analyze_file_concurrently(file_content, username, repo_name):
         efficiency_score = evaluate_efficiency(code_content, file_path=file_path_with_user)
 
         # QUALITY ANALYSIS
+        # Using the synchronous version to avoid coroutine never awaited error
         quality_score = evaluate_quality(code_content, file_path=file_path_with_user)
 
         return {
@@ -792,7 +802,13 @@ async def user_report(username):
             
             # Calculate overall ELO scores for each repo
             for repo in results:
-                if not repo.get('overall_score') or repo['overall_score'] == 'Click to analyze':
+                if not repo.get('analyzed', False):
+                    # For unanalyzed repos, set all scores to "Click to analyze"
+                    repo['security']['score'] = "Click to analyze"
+                    repo['efficiency']['score'] = "Click to analyze" 
+                    repo['quality']['score'] = "Click to analyze"
+                    repo['overall_score'] = "Click to analyze"
+                elif not repo.get('overall_score') or repo['overall_score'] == 'Click to analyze':
                     scores = []
                     for metric in ['security', 'efficiency', 'quality']:
                         try:
