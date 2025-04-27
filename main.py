@@ -658,7 +658,7 @@ def repo_details(username, repo_name):
 
 @app.route('/readme-badge/<username>')
 def generate_readme_badge(username):
-    """Generate a GitHub README badge with GitHub Doctor scores"""
+    """Generate a GitHub README badge with GitGud scores"""
     try:
         # Check if user is in cache
         if username not in user_cache:
