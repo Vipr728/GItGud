@@ -1,6 +1,253 @@
 [
   {
     "name": "bloomquiz",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "A website creating and taking quizzes.",
+    "languages": {
+      "HTML": 18595,
+      "Python": 11594,
+      "CSS": 1374
+    },
+    "url": "https://github.com/floatedbloom/bloomquiz",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "flutter_recipes",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "Recipe sharing app made in flutter",
+    "languages": {
+      "Dart": 61272,
+      "C++": 24229,
+      "CMake": 19490,
+      "Swift": 2074,
+      "C": 1425,
+      "HTML": 1234,
+      "Kotlin": 128,
+      "Objective-C": 38
+    },
+    "url": "https://github.com/floatedbloom/flutter_recipes",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "george_clubs",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "Website showcasing info and leadership of math club, CS club, chess club, and ping pong club.",
+    "languages": {
+      "TypeScript": 15918,
+      "CSS": 2754,
+      "JavaScript": 734,
+      "HTML": 369
+    },
+    "url": "https://github.com/floatedbloom/george_clubs",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "georgiywebsite",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "My personal website.",
+    "languages": {
+      "Astro": 83506,
+      "JavaScript": 109
+    },
+    "url": "https://github.com/floatedbloom/georgiywebsite",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "ls-slugs-chess",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "The website for the Lake Stevens Slugs chess team.",
+    "languages": {
+      "JavaScript": 2333,
+      "HTML": 1721,
+      "TypeScript": 1634,
+      "CSS": 930
+    },
+    "url": "https://github.com/floatedbloom/ls-slugs-chess",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "mobile_platformer",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "Flappy bird clone",
+    "languages": {
+      "C#": 38780872,
+      "Java": 102560,
+      "ShaderLab": 91802,
+      "Objective-C": 42504,
+      "C++": 17765,
+      "HLSL": 17294,
+      "Objective-C++": 12933,
+      "GAP": 9254,
+      "C": 2638,
+      "CMake": 426
+    },
+    "url": "https://github.com/floatedbloom/mobile_platformer",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "privacypolicy",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": null,
+    "languages": {
+      "HTML": 138376
+    },
+    "url": "https://github.com/floatedbloom/privacypolicy",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "sudoku-solver",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "Sudoku solver to practice C programming.",
+    "languages": {
+      "C": 8188
+    },
+    "url": "https://github.com/floatedbloom/sudoku-solver",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "taskmanagerfx",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "Simple JavaFX task manager created for my CS143 final.",
+    "languages": {
+      "Java": 22924,
+      "CSS": 101
+    },
+    "url": "https://github.com/floatedbloom/taskmanagerfx",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  },
+  {
+    "name": "vibe-teach",
+    "security": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "quality": {
+      "score": "Click to analyze",
+      "concerns": []
+    },
+    "description": "OSS4AI April 2025 Winning Submission",
+    "languages": {
+      "Python": 28320
+    },
+    "url": "https://github.com/floatedbloom/vibe-teach",
+    "overall_score": "Click to analyze",
+    "analyzed": false
+  }
+][
+  {
+    "name": "bloomquiz",
     "description": "A website creating and taking quizzes.",
     "url": "https://github.com/floatedbloom/bloomquiz",
     "languages": {
@@ -27,7 +274,8 @@
   },
   {
     "name": "flutter_recipes",
-    "stars": 0,
+    "description": "Recipe sharing app made in flutter",
+    "url": "https://github.com/floatedbloom/flutter_recipes",
     "languages": {
       "Dart": 61272,
       "C++": 24229,
@@ -38,26 +286,106 @@
       "Kotlin": 128,
       "Objective-C": 38
     },
-    "description": "Recipe sharing app made in flutter",
-    "url": "https://github.com/floatedbloom/flutter_recipes",
-    "commit_count": 18
+    "size": 360,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
     "name": "george_clubs",
-    "stars": 0,
+    "description": "Website showcasing info and leadership of math club, CS club, chess club, and ping pong club.",
+    "url": "https://github.com/floatedbloom/george_clubs",
     "languages": {
       "TypeScript": 15918,
       "CSS": 2754,
       "JavaScript": 734,
       "HTML": 369
     },
-    "description": "Website showcasing info and leadership of math club, CS club, chess club, and ping pong club.",
-    "url": "https://github.com/floatedbloom/george_clubs",
-    "commit_count": 8
+    "size": 15389,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
+  },
+  {
+    "name": "georgiywebsite",
+    "description": "My personal website.",
+    "url": "https://github.com/floatedbloom/georgiywebsite",
+    "languages": {
+      "Astro": 83506,
+      "JavaScript": 109
+    },
+    "size": 694,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
+  },
+  {
+    "name": "ls-slugs-chess",
+    "description": "The website for the Lake Stevens Slugs chess team.",
+    "url": "https://github.com/floatedbloom/ls-slugs-chess",
+    "languages": {
+      "JavaScript": 2333,
+      "HTML": 1721,
+      "TypeScript": 1634,
+      "CSS": 930
+    },
+    "size": 174,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
     "name": "mobile_platformer",
-    "stars": 2,
+    "description": "Flappy bird clone",
+    "url": "https://github.com/floatedbloom/mobile_platformer",
     "languages": {
       "C#": 38780872,
       "Java": 102560,
@@ -70,80 +398,118 @@
       "C": 2638,
       "CMake": 426
     },
-    "description": "Flappy bird clone",
-    "url": "https://github.com/floatedbloom/mobile_platformer",
-    "commit_count": 4
-  },
-  {
-    "name": "floatedbloom",
-    "stars": 0,
-    "languages": {},
-    "description": null,
-    "url": "https://github.com/floatedbloom/floatedbloom",
-    "commit_count": 3
-  },
-  {
-    "name": "bloomquiz",
-    "stars": 0,
-    "languages": {
-      "HTML": 18595,
-      "Python": 11594,
-      "CSS": 1374
+    "size": 589574,
+    "fork": false,
+    "stargazers_count": 2,
+    "security": {
+      "score": "N/A",
+      "concerns": []
     },
-    "description": "A website creating and taking quizzes.",
-    "url": "https://github.com/floatedbloom/bloomquiz",
-    "commit_count": 2
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
     "name": "privacypolicy",
-    "stars": 0,
+    "description": null,
+    "url": "https://github.com/floatedbloom/privacypolicy",
     "languages": {
       "HTML": 138376
     },
-    "description": null,
-    "url": "https://github.com/floatedbloom/privacypolicy",
-    "commit_count": 2
-  },
-  {
-    "name": "ls-slugs-chess",
-    "stars": 0,
-    "languages": {
-      "JavaScript": 2333,
-      "HTML": 1721,
-      "TypeScript": 1634,
-      "CSS": 930
+    "size": 20,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
     },
-    "description": "The website for the Lake Stevens Slugs chess team.",
-    "url": "https://github.com/floatedbloom/ls-slugs-chess",
-    "commit_count": 1
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
     "name": "sudoku-solver",
-    "stars": 0,
+    "description": "Sudoku solver to practice C programming.",
+    "url": "https://github.com/floatedbloom/sudoku-solver",
     "languages": {
       "C": 8188
     },
-    "description": "Sudoku solver to practice C programming.",
-    "url": "https://github.com/floatedbloom/sudoku-solver",
-    "commit_count": 1
+    "size": 3,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
     "name": "taskmanagerfx",
-    "stars": 0,
+    "description": "Simple JavaFX task manager created for my CS143 final.",
+    "url": "https://github.com/floatedbloom/taskmanagerfx",
     "languages": {
       "Java": 22924,
       "CSS": 101
     },
-    "description": "Simple JavaFX task manager created for my CS143 final.",
-    "url": "https://github.com/floatedbloom/taskmanagerfx",
-    "commit_count": 1
+    "size": 15,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   },
   {
-    "name": "evcc-ai-club",
-    "stars": 0,
-    "languages": {},
-    "description": null,
-    "url": "https://github.com/floatedbloom/evcc-ai-club",
-    "commit_count": 0
+    "name": "vibe-teach",
+    "description": "OSS4AI April 2025 Winning Submission",
+    "url": "https://github.com/floatedbloom/vibe-teach",
+    "languages": {
+      "Python": 28320
+    },
+    "size": 2729,
+    "fork": false,
+    "stargazers_count": 0,
+    "security": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "efficiency": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "quality": {
+      "score": "N/A",
+      "concerns": []
+    },
+    "analyzed": false
   }
 ]
