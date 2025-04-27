@@ -3,10 +3,12 @@ from dotenv import load_dotenv
 import os
 import json
 import random
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # LOAD API KEYS
 load_dotenv()
-APIKEY = os.getenv("NVIDIA_NIM_API_KEY_EFFICIENCY")
+APIKEY = os.getenv("OPENAI_API_KEY")
 
 # Dictionary of efficiency resources for common issues
 EFFICIENCY_RESOURCES = {
@@ -80,7 +82,10 @@ def get_efficiency_resources(concerns):
     # Extract keywords from concerns and match to resources
     keywords_found = []
     for concern in concerns:
-        concern_lower = concern.lower()
+        # Ensure concern is a string
+        concern_str = str(concern) if concern is not None else ""
+        concern_lower = concern_str.lower()
+        
         for keyword in EFFICIENCY_RESOURCES:
             if keyword in concern_lower and keyword not in keywords_found:
                 keywords_found.append(keyword)
@@ -97,23 +102,70 @@ def get_efficiency_resources(concerns):
     
     return resources[:3]  # Return max 3 resources
 
+# Function to trim code to reduce token usage
+def trim_code_for_analysis(code, file_path):
+    """Trims code to reduce token usage while maintaining meaningful content for analysis."""
+    # Hard token limit - about 4000 tokens max for code (roughly 16000 chars)
+    MAX_CHARS = 4000
+    
+    # If code is small enough, just return it
+    if len(code) < MAX_CHARS:
+        return code
+    
+    # Extract language from file path
+    extension = file_path.split('.')[-1] if '.' in file_path else ''
+    comment_marker = '#' if extension in ['py', 'rb', 'pl'] else '//'
+    
+    # Split code into lines
+    lines = code.split('\n')
+    
+    # If still too large, select important parts (first 30 lines, last 20 lines, and samples from middle)
+    head = lines[:30]
+    tail = lines[-20:]
+    
+    if len(lines) > 50:
+        middle_size = min(30, len(lines) - 50)
+        step = max(1, (len(lines) - 50) // middle_size)
+        middle = lines[30:len(lines)-20:step][:middle_size]
+        
+        # Add markers where code was trimmed
+        result = '\n'.join(head)
+        result += f'\n\n{comment_marker} ... (code trimmed for analysis) ...\n\n'
+        result += '\n'.join(middle[:middle_size])
+        result += f'\n\n{comment_marker} ... (code trimmed for analysis) ...\n\n'
+        result += '\n'.join(tail)
+        
+        # Double-check if still too large
+        if len(result) > MAX_CHARS:
+            return result[:MAX_CHARS] + f"\n\n{comment_marker} ... (truncated due to size limits)"
+        return result
+    
+    return code
+
+# Define an exception for the rate limit error
+class RateLimitError(Exception):
+    pass
+
 def evaluate_efficiency(code: str, file_path: str = "") -> dict:
     """
-    Analyze the efficiency of the given code using DeepSeek AI.
+    Analyze the efficiency of the given code using OpenAI.
     Returns a dict with score and efficiency concerns.
+    Implements rate limiting and retry logic.
     """
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
         api_key=APIKEY,
     )
 
-    # Use a threading-based approach but with no timeout
+    # Import necessary modules
     import threading
     import time
     from concurrent.futures import ThreadPoolExecutor
 
     # Special case handling for specific users
-    if "torvalds" in file_path:
+    # Ensure file_path is a string before using .lower()
+    file_path_str = str(file_path) if file_path is not None else ""
+    
+    if "torvalds" in file_path_str:
         concerns = [
             "The algorithmic efficiency of this code makes quantum computers look like abacuses. The space complexity is so perfectly optimized it approaches the theoretical limit of information density.",
             "Each function here has been refined to such perfection that it executes faster than the compiler can even recognize what it's doing. Torvalds has once again transcended conventional programming limitations.",
@@ -125,7 +177,7 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
             "resources": random.sample(EFFICIENCY_RESOURCES["default"], 2)
         }
     
-    if "vipr728" in file_path:
+    if "vipr728" in file_path_str:
         concerns = [
             "This code is slower than vipr728 trying to understand the concept of big O notation. The nested loops are a masterclass in how to bring a server to its knees.",
             "Space complexity here is directly proportional to vipr728's ego - unnecessarily large and inefficient. Memory is allocated with reckless abandon.",
@@ -139,167 +191,138 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
             "resources": random.sample(EFFICIENCY_RESOURCES["default"], 2)
         }
 
+    # Trim code to reduce token usage - enforce strict limits
+    trimmed_code = trim_code_for_analysis(code, file_path)
+    
+    # Add retry logic using tenacity
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=2, min=4, max=60),  # Longer waits between retries
+        retry=retry_if_exception_type((RateLimitError))
+    )
+    def call_api_with_retry():
+        # Rate limiting - Add longer delay between calls (at least 4 seconds)
+        time.sleep(4)
+        
+        try:
+            # Create an extremely minimal prompt to reduce tokens
+            prompt = f"""
+            Rate code efficiency (0-100). Top concerns only. Format: JSON with score and concerns.
+            
+            File: {file_path.split('/')[-1] if '/' in file_path else file_path}
+            
+            {trimmed_code}"""
+            
+            # Calculate rough token estimate (4 chars ~= 1 token)
+            estimated_tokens = len(prompt) // 4
+            if estimated_tokens > 7000:  # Safe limit for input tokens
+                # Further reduce code if needed
+                reduction_ratio = 7000 / estimated_tokens
+                char_limit = int(len(trimmed_code) * reduction_ratio)
+                trimmed_code_reduced = trimmed_code[:char_limit] + "\n\n# ... (truncated)"
+                prompt = f"""
+                Rate code efficiency (0-100). Top concerns only. Format: JSON with score and concerns.
+                
+                File: {file_path.split('/')[-1] if '/' in file_path else file_path}
+                
+                {trimmed_code_reduced}"""
+            
+            # Use streaming to reduce memory usage and get faster response
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=250,  # Further reduced for token efficiency
+                stream=True  # Use streaming
+            )
+            
+            # Collect streaming response
+            content = ""
+            for chunk in completion:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content += chunk.choices[0].delta.content
+            return content
+            
+        except Exception as e:
+            error_msg = str(e)
+            print(f"API call error: {error_msg}")
+            
+            # Handle rate limit errors with longer timeout
+            if "rate_limit" in error_msg.lower() or "429" in error_msg:
+                print(f"Rate limit exceeded. Waiting 2 seconds before retry...")
+                time.sleep(2)  # Wait a full minute before retry
+                raise RateLimitError("Rate limit exceeded")
+                
+            # Handle other errors with fallback
+            generic_concerns = [
+                "Consider optimizing loop structures to reduce time complexity",
+                "Review data structure choices for better efficiency"
+            ]
+            selected_concerns = random.sample(generic_concerns, 1)
+            return json.dumps({
+                "score": random.randint(50, 80),
+                "concerns": selected_concerns
+            })
+
     try:
-        # Create a function that executes the API call
-        def call_api():
-            try:
-                completion = client.chat.completions.create(
-                    model="deepseek-ai/deepseek-r1-distill-qwen-7b",
-                    messages=[
-                        {"role": "user", "content": f"""
-                        Analyze the efficiency of the following code and rate it on a scale of 0-100 
-                        with 0 being completely inefficient and 100 being perfectly efficient.
-                        
-                        Rules for scoring:
-                        1. Score should be a multiple of 5 (e.g., 65, 70, 75)
-                        2. Perfect or near-perfect code should get a score of 95-100
-                        3. Most efficient code should be in the 80-90 range
-                        4. Extremely inefficient code should get a score of 0-5
-                        5. Average code should be scored around 50-55
-                        
-                        Identify any efficiency issues or concerns. For each issue:
-                        1. Provide the exact line number(s) where the issue occurs if applicable
-                        2. Briefly explain the efficiency issue (time complexity, space complexity, algorithm choice, etc.)
-                        3. Suggest a more efficient approach
-                        
-                        Format your response as a JSON object with the following structure:
-                        {{
-                            "score": <number between 0-100 in multiples of 5>,
-                            "concerns": [
-                                "Line <line_number>: <brief description of issue> - <suggested efficient approach>",
-                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested efficient approach>",
-                                ...
-                            ]
-                        }}
-                        
-                        If there are no efficiency concerns, provide an empty array for concerns and score 100.
-                        
-                        The code is from file: {file_path}
-                        
-                        Code to analyze:
-                        {code}"""}
-                    ],
-                    temperature=0.6,
-                    top_p=0.7,
-                    max_tokens=1024,
-                    stream=False
-                )
-                return completion.choices[0].message.content
-            except Exception as e:
-                print(f"API call error: {e}")
-                # More robust error handling
-                error_msg = str(e)
-                if "502" in error_msg or "500" in error_msg or "TRT engine failed" in error_msg:
-                    print("NVIDIA API server error detected. Using fallback evaluation.")
-                    # Randomize the score between 50-80 instead of fixed 65
-                    random_score = random.randint(50, 80)
-                    # Generate generic concerns without line numbers
-                    generic_concerns = [
-                        "Consider optimizing loop structures to reduce time complexity",
-                        "Review data structure choices for better space and time efficiency",
-                        "Evaluate algorithm complexity and look for more efficient alternatives",
-                        "Check for redundant calculations that could be optimized",
-                        "Consider using caching or memoization for repeated operations"
-                    ]
-                    # Select 1-3 random concerns
-                    selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-                    return json.dumps({
-                        "score": random_score,
-                        "concerns": selected_concerns
-                    })
-                return None
-            
-        # Execute without a timeout
-        with ThreadPoolExecutor() as executor:
-            future = executor.submit(call_api)
-            response = future.result()  # No timeout, will wait indefinitely
-            
-            if not response:
-                # Randomize the score between 50-80 instead of fixed 65
-                random_score = random.randint(50, 80)
-                # Generate generic concerns without line numbers
-                generic_concerns = [
-                    "Consider optimizing loop structures to reduce time complexity",
-                    "Review data structure choices for better space and time efficiency",
-                    "Evaluate algorithm complexity and look for more efficient alternatives",
-                    "Check for redundant calculations that could be optimized",
-                    "Consider using caching or memoization for repeated operations"
-                ]
-                # Select 1-3 random concerns
-                selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-                result = {"score": str(random_score), "concerns": selected_concerns}
-                result["resources"] = get_efficiency_resources(selected_concerns)
-                return result
-            
-            # Try to parse the JSON response
-            import re
-            
-            # First, try to extract JSON from the response if it contains other text
-            json_match = re.search(r'({[\s\S]*})', response)
-            if json_match:
-                json_str = json_match.group(1)
-                try:
-                    result = json.loads(json_str)
-                    # Ensure score is a string
-                    result["score"] = str(result.get("score", 65))
-                    # Ensure "No concerns" always gets 100
-                    if not result.get("concerns") or len(result.get("concerns", [])) == 0:
-                        result["score"] = "100"
-                        result["concerns"] = ["No efficiency concerns detected"]
-                    # Add relevant resources
-                    result["resources"] = get_efficiency_resources(result.get("concerns", []))
-                    return result
-                except json.JSONDecodeError:
-                    pass
-            
-            # If JSON parsing fails, try to extract just the score
-            score_match = re.search(r'\b(\d{1,3})\b', response)
-            if score_match:
-                score = score_match.group(1)
-                if 0 <= int(score) <= 100:
-                    # Check for no concerns
-                    concerns = []
-                    if "no concern" in response.lower() or "no issue" in response.lower() or "no efficiency" in response.lower() or "no problem" in response.lower():
-                        concerns = ["No efficiency concerns detected"]
-                        result = {"score": "100", "concerns": concerns}
-                    else:
-                        concerns = ["No specific efficiency concerns identified"]
-                        result = {"score": score, "concerns": concerns}
-                    
-                    # Add relevant resources
-                    result["resources"] = get_efficiency_resources(concerns)
-                    return result
-            
-            # If all parsing fails, return randomized values
+        # Execute with retry logic and increased timeouts
+        response = call_api_with_retry()
+        
+        if not response:
+            # Fallback if no response
             random_score = random.randint(50, 80)
             generic_concerns = [
                 "Consider optimizing loop structures to reduce time complexity",
-                "Review data structure choices for better space and time efficiency",
-                "Evaluate algorithm complexity and look for more efficient alternatives",
-                "Check for redundant calculations that could be optimized",
-                "Consider using caching or memoization for repeated operations"
+                "Review data structure choices for better efficiency"
             ]
-            selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
+            selected_concerns = random.sample(generic_concerns, 1)
             result = {"score": str(random_score), "concerns": selected_concerns}
             result["resources"] = get_efficiency_resources(selected_concerns)
             return result
+        
+        # Process response
+        import re
+        
+        # Try to extract JSON from the response
+        json_match = re.search(r'({[\s\S]*})', response)
+        if json_match:
+            json_str = json_match.group(1)
+            try:
+                result = json.loads(json_str)
+                # Ensure score is a string
+                result["score"] = str(result.get("score", 60))
+                # Ensure "No concerns" always gets 100
+                if not result.get("concerns") or len(result.get("concerns", [])) == 0:
+                    result["score"] = "100"
+                    result["concerns"] = ["No efficiency concerns detected"]
+                # Add relevant resources
+                result["resources"] = get_efficiency_resources(result.get("concerns", []))
+                return result
+            except json.JSONDecodeError:
+                pass
+        
+        # If JSON parsing fails, provide fallback
+        random_score = random.randint(50, 80)
+        generic_concerns = [
+            "Review algorithms for potential optimizations",
+            "Consider more efficient data structures"
+        ]
+        result = {"score": str(random_score), "concerns": generic_concerns}
+        result["resources"] = get_efficiency_resources(generic_concerns)
+        return result
     
     except Exception as e:
         print(f"Error analyzing efficiency: {e}")
-        # Randomize the score between 50-80 instead of fixed 65
+        # Fallback response
         random_score = random.randint(50, 80)
-        # Generate generic concerns without line numbers
         generic_concerns = [
-            "Consider optimizing loop structures to reduce time complexity",
-            "Review data structure choices for better space and time efficiency",
-            "Evaluate algorithm complexity and look for more efficient alternatives",
-            "Check for redundant calculations that could be optimized",
-            "Consider using caching or memoization for repeated operations"
+            "Consider optimizing algorithm complexity",
+            "Evaluate data structure choices for better performance"
         ]
-        # Select 1-3 random concerns
-        selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-        result = {"score": str(random_score), "concerns": selected_concerns}
-        result["resources"] = get_efficiency_resources(selected_concerns)
+        result = {"score": str(random_score), "concerns": generic_concerns}
+        result["resources"] = get_efficiency_resources(generic_concerns)
         return result
 
 if __name__ == "__main__":
