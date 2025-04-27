@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Doctor</title>
+    <title>Git Gud</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
             /* Light Theme Variables */
             --primary-color: #6366F1;
             --secondary-color: #4F46E5;
-            --background-color: #F9FAFB;
+            --background-gradient: linear-gradient(to bottom, #fef6fb, #db71c4); /* Gradient from pink to white */
             --container-bg: white;
             --text-color: #1F2937;
             --border-color: #E5E7EB;
@@ -25,9 +25,10 @@
         }
 
         [data-theme="dark"] {
+            /* Dark Theme Variables */
             --primary-color: #818CF8;
             --secondary-color: #6366F1;
-            --background-color: #111827;
+            --background-gradient: linear-gradient(to bottom, #1e293b, #1a3c85); /* Gradient for dark mode */
             --container-bg: #1F2937;
             --text-color: #F9FAFB;
             --border-color: #374151;
@@ -49,16 +50,19 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
+            background: var(--background-gradient); /* Use the gradient */
             color: var(--text-color);
             line-height: 1.6;
-            padding: 2rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            margin: 0;
+            display: flex; /* Center the content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            height: 100vh; /* Full viewport height */
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .container {
             max-width: 1000px;
-            margin: 0 auto;
             padding: 2rem;
             background: var(--container-bg);
             border-radius: 12px;
@@ -139,6 +143,17 @@
             margin-bottom: 2rem;
             color: var(--primary-color);
             text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--text-color);
+            margin-top: -1rem; /* Adjust spacing above */
+            margin-bottom: 2rem; /* Add spacing below */
+            text-align: center; /* Center the text */
+            display: block; /* Ensure it behaves like a block element */
+            opacity: 0.8; /* Slightly lighter text */
         }
 
         .form-container {
@@ -383,6 +398,36 @@
             background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
         }
 
+        .title {
+            display: flex;
+            align-items: center; /* Align the image and text vertically */
+            justify-content: center; /* Center the title and image horizontally */
+            gap: 1rem; /* Add spacing between the image and text */
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            width: 50px; /* Adjust the width of the image */
+            height: auto; /* Maintain the aspect ratio */
+            border-radius: 8px; /* Optional: Add rounded corners */
+        }
+
+        .gitai-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            z-index: 1000;
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+        }
+
         .analyze-prompt {
             display: flex;
             align-items: center;
@@ -444,6 +489,9 @@
     </style>
 </head>
 <body>
+    <div class="gitai-logo">
+        <span>GitAI</span>
+    </div>
     <div class="theme-toggle">
         <span class="theme-icon">🌞</span>
         <label>
@@ -460,7 +508,8 @@
     </div>
     
     <div class="container">
-        <h1>GitHub Doctor</h1>
+        <h1>Git Gud</h1>
+        <p class="subtitle">Your personal GitHub evaluator</p>
         
         {% if error %}
             <div class="error-message">
