@@ -610,14 +610,24 @@ button:hover {
 }
 
 .analyze-prompt {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 1em;
-    padding: 0.5em;
-    border: 0.0625em solid var(--border-color);
+    padding: 0.5em 1em;
     border-radius: 0.375em;
-    background-color: var(--container-bg);
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    color: white;
+    font-weight: 600;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.analyze-prompt:hover {
+    transform: translateY(-0.125em);
+    box-shadow: 0 0.5em 0.9375em rgba(99, 102, 241, 0.3);
 }
 
 .analyze-message {
@@ -805,10 +815,9 @@ html, body, * {
                                 {% endif %}
                             </div>
                         {% else %}
-                            <!-- Display "Click to analyze" for unanalyzed repos -->
+                            <!-- Replace the analyze-prompt content -->
                             <div class="analyze-prompt" onclick="window.location.href='/repo_details/{{ username }}/{{ repo.name }}'">
-                                <div class="analyze-message">Click to analyze this repository</div>
-                                <div class="analyze-icon">🔍</div>
+                                Analyze 🔍
                             </div>
                         {% endif %}
                     </div>
@@ -898,3 +907,4 @@ html, body, * {
     </script>
 </body>
 </html>
+``` 
