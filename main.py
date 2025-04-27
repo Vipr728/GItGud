@@ -23,8 +23,12 @@ from utils.quality import evaluate_quality
 from utils.security import evaluate_security
 from utils.efficiency import evaluate_efficiency
 
-# Initialize Flask App
-app = Flask(__name__)
+# Initialize Flask App with static and template folders
+app = Flask(
+    __name__,
+    static_folder="static",        # Path to your static files
+    template_folder="templates"    # Path to your HTML templates
+)
 
 # Add a simple cache for repository analysis results
 repo_cache = {}
@@ -893,13 +897,3 @@ def analyze_progress_status(username, repo_name):
 # Ensure non-Flask logic is executed only when not running the Flask app
 if __name__ == "__main__":
     app.run(debug=True)
-    if "FLASK_RUN" not in os.environ:  # Check if Flask is running
-        repos = get_user_repos("floatedbloom")
-        with open("repos.json", "w") as f:
-            json.dump(repos, f, indent=2)
-
-        # Download contents for each repository
-        for repo in repos:
-            download_repo_contents("floatedbloom", repo['name'])
-    else:
-        app.run(debug=True)
