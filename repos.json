@@ -68,5 +68,77 @@
     "description": "Flappy bird clone",
     "url": "https://github.com/floatedbloom/mobile_platformer",
     "commit_count": 4
+  },
+  {
+    "name": "floatedbloom",
+    "stars": 0,
+    "languages": {},
+    "description": null,
+    "url": "https://github.com/floatedbloom/floatedbloom",
+    "commit_count": 3
+  },
+  {
+    "name": "bloomquiz",
+    "stars": 0,
+    "languages": {
+      "HTML": 18595,
+      "Python": 11594,
+      "CSS": 1374
+    },
+    "description": "A website creating and taking quizzes.",
+    "url": "https://github.com/floatedbloom/bloomquiz",
+    "commit_count": 2
+  },
+  {
+    "name": "privacypolicy",
+    "stars": 0,
+    "languages": {
+      "HTML": 138376
+    },
+    "description": null,
+    "url": "https://github.com/floatedbloom/privacypolicy",
+    "commit_count": 2
+  },
+  {
+    "name": "ls-slugs-chess",
+    "stars": 0,
+    "languages": {
+      "JavaScript": 2333,
+      "HTML": 1721,
+      "TypeScript": 1634,
+      "CSS": 930
+    },
+    "description": "The website for the Lake Stevens Slugs chess team.",
+    "url": "https://github.com/floatedbloom/ls-slugs-chess",
+    "commit_count": 1
+  },
+  {
+    "name": "sudoku-solver",
+    "stars": 0,
+    "languages": {
+      "C": 8188
+    },
+    "description": "Sudoku solver to practice C programming.",
+    "url": "https://github.com/floatedbloom/sudoku-solver",
+    "commit_count": 1
+  },
+  {
+    "name": "taskmanagerfx",
+    "stars": 0,
+    "languages": {
+      "Java": 22924,
+      "CSS": 101
+    },
+    "description": "Simple JavaFX task manager created for my CS143 final.",
+    "url": "https://github.com/floatedbloom/taskmanagerfx",
+    "commit_count": 1
+  },
+  {
+    "name": "evcc-ai-club",
+    "stars": 0,
+    "languages": {},
+    "description": null,
+    "url": "https://github.com/floatedbloom/evcc-ai-club",
+    "commit_count": 0
   }
 ]

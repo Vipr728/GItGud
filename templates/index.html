@@ -417,6 +417,48 @@
             text-decoration: none;
             font-family: 'Inter', sans-serif;
         }
+
+        .analyze-prompt {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--container-bg);
+        }
+
+        .analyze-message {
+            margin-right: 0.5rem;
+            font-weight: 500;
+        }
+
+        .analyze-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-size: 1.2rem;
+        }
+
+        .repo-grid-header {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .repo-grid-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .repo-grid-header p {
+            font-size: 1rem;
+            color: var(--text-color);
+        }
     </style>
 </head>
 <body>
@@ -461,12 +503,18 @@
 
         {% if results %}
             <div class="actions-container">
-                <a href="/user-report/{{ username }}" class="report-button">Get My GitHub Report</a>
+                <a href="/user-report/{{ username }}" class="report-button">Run Complete Analysis (Takes Time)</a>
+                <p class="explanation">Click this button to analyze ALL repositories at once. This will take several minutes.</p>
+            </div>
+
+            <div class="repo-grid-header">
+                <h2>Repositories</h2>
+                <p>Click on any repository card below to analyze it individually.</p>
             </div>
 
             <div class="repo-grid">
                 {% for repo in results %}
-                    <div class="repo-card" onclick="window.location.href='/repo/{{ username }}/{{ repo.name }}'">
+                    <div class="repo-card" onclick="window.location.href='/repo_details/{{ username }}/{{ repo.name }}'">
                         <h3>{{ repo.name }}</h3>
                         {% if repo.description %}
                             <p class="repo-description">{{ repo.description }}</p>
@@ -476,46 +524,56 @@
                                 <span class="language-tag">{{ language }}</span>
                             {% endfor %}
                         </div>
-                        <div class="score">
-                            <span class="score-label">Security:</span>
-                            <span class="score-value">
-                                {% if repo.security.score == "N/A" or repo.security.score == "Error" %}
-                                    {{ repo.security.score }}
-                                {% else %}
-                                    {{ repo.security.score|float|round|int }}
-                                {% endif %}
-                            </span>
-                        </div>
-                        <div class="score">
-                            <span class="score-label">Efficiency:</span>
-                            <span class="score-value">
-                                {% if repo.efficiency.score == "N/A" or repo.efficiency.score == "Error" %}
-                                    {{ repo.efficiency.score }}
-                                {% else %}
-                                    {{ repo.efficiency.score|float|round|int }}
-                                {% endif %}
-                            </span>
-                        </div>
-                        <div class="score">
-                            <span class="score-label">Quality:</span>
-                            <span class="score-value">
-                                {% if repo.quality.score == "N/A" or repo.quality.score == "Error" %}
-                                    {{ repo.quality.score }}
-                                {% else %}
-                                    {{ repo.quality.score|float|round|int }}
-                                {% endif %}
-                            </span>
-                        </div>
                         
-                        <!-- Overall GitHub ELO Score -->
-                        <div class="overall-score">
-                            Overall ELO: 
-                            {% if repo.overall_score == "N/A" or repo.overall_score == "Error" %}
-                                {{ repo.overall_score }}
-                            {% else %}
-                                {{ repo.overall_score|float|round|int }}
-                            {% endif %}
-                        </div>
+                        {% if repo.analyzed %}
+                            <!-- Display scores for analyzed repos -->
+                            <div class="score">
+                                <span class="score-label">Security:</span>
+                                <span class="score-value">
+                                    {% if repo.security.score == "N/A" or repo.security.score == "Error" %}
+                                        {{ repo.security.score }}
+                                    {% else %}
+                                        {{ repo.security.score|float|round|int }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="score">
+                                <span class="score-label">Efficiency:</span>
+                                <span class="score-value">
+                                    {% if repo.efficiency.score == "N/A" or repo.efficiency.score == "Error" %}
+                                        {{ repo.efficiency.score }}
+                                    {% else %}
+                                        {{ repo.efficiency.score|float|round|int }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="score">
+                                <span class="score-label">Quality:</span>
+                                <span class="score-value">
+                                    {% if repo.quality.score == "N/A" or repo.quality.score == "Error" %}
+                                        {{ repo.quality.score }}
+                                    {% else %}
+                                        {{ repo.quality.score|float|round|int }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                            
+                            <!-- Overall GitHub ELO Score -->
+                            <div class="overall-score">
+                                Overall ELO: 
+                                {% if repo.overall_score == "N/A" or repo.overall_score == "Error" %}
+                                    {{ repo.overall_score }}
+                                {% else %}
+                                    {{ repo.overall_score|float|round|int }}
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <!-- Display "Click to analyze" for unanalyzed repos -->
+                            <div class="analyze-prompt">
+                                <div class="analyze-message">Click to analyze this repository</div>
+                                <div class="analyze-icon">🔍</div>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endfor %}
             </div>

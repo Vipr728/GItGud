@@ -329,6 +329,46 @@
                 padding: 8px 12px;
             }
         }
+
+        .success-message {
+            display: flex;
+            align-items: center;
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .success-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--success-color);
+            color: white;
+            font-size: 1.5rem;
+            border-radius: 50%;
+            margin-right: 1rem;
+        }
+
+        .success-content h3 {
+            margin: 0;
+            color: var(--success-color);
+            font-size: 1.2rem;
+        }
+
+        .success-content p {
+            margin: 0.5rem 0 0 0;
+            color: var(--text-color);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -343,6 +383,16 @@
 
     <div class="container">
         <a href="/?username={{ username }}" class="back-link">Back to all repositories</a>
+        
+        {% if just_analyzed %}
+        <div class="success-message">
+            <div class="success-icon">✓</div>
+            <div class="success-content">
+                <h3>Analysis Complete!</h3>
+                <p>Repository has been successfully analyzed.</p>
+            </div>
+        </div>
+        {% endif %}
         
         <h1>{{ repo.name }}</h1>
         <div class="repo-meta">

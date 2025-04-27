@@ -3,10 +3,12 @@ from dotenv import load_dotenv
 import os
 import json
 import random
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # LOAD API KEYS
 load_dotenv()
-APIKEY = os.getenv("NVIDIA_NIM_API_KEY_SECURITY")
+APIKEY = os.getenv("OPENAI_API_KEY")
 
 # Dictionary of security resources for common issues
 SECURITY_RESOURCES = {
@@ -84,7 +86,10 @@ def get_security_resources(concerns):
     # Extract keywords from concerns and match to resources
     keywords_found = []
     for concern in concerns:
-        concern_lower = concern.lower()
+        # Ensure concern is a string
+        concern_str = str(concern) if concern is not None else ""
+        concern_lower = concern_str.lower()
+        
         for keyword in SECURITY_RESOURCES:
             if keyword in concern_lower and keyword not in keywords_found:
                 keywords_found.append(keyword)
@@ -101,24 +106,71 @@ def get_security_resources(concerns):
     
     return resources[:3]  # Return max 3 resources
 
+# Function to trim code to reduce token usage
+def trim_code_for_analysis(code, file_path):
+    """Trims code to reduce token usage while maintaining meaningful content for analysis."""
+    # Hard token limit - about 4000 tokens max for code (roughly 16000 chars)
+    MAX_CHARS = 4000
+    
+    # If code is small enough, just return it
+    if len(code) < MAX_CHARS:
+        return code
+    
+    # Extract language from file path
+    extension = file_path.split('.')[-1] if '.' in file_path else ''
+    comment_marker = '#' if extension in ['py', 'rb', 'pl'] else '//'
+    
+    # Split code into lines
+    lines = code.split('\n')
+    
+    # If still too large, select important parts (first 30 lines, last 20 lines, and samples from middle)
+    head = lines[:30]
+    tail = lines[-20:]
+    
+    if len(lines) > 50:
+        middle_size = min(30, len(lines) - 50)
+        step = max(1, (len(lines) - 50) // middle_size)
+        middle = lines[30:len(lines)-20:step][:middle_size]
+        
+        # Add markers where code was trimmed
+        result = '\n'.join(head)
+        result += f'\n\n{comment_marker} ... (code trimmed for analysis) ...\n\n'
+        result += '\n'.join(middle[:middle_size])
+        result += f'\n\n{comment_marker} ... (code trimmed for analysis) ...\n\n'
+        result += '\n'.join(tail)
+        
+        # Double-check if still too large
+        if len(result) > MAX_CHARS:
+            return result[:MAX_CHARS] + f"\n\n{comment_marker} ... (truncated due to size limits)"
+        return result
+    
+    return code
+
+# Define an exception for the rate limit error
+class RateLimitError(Exception):
+    pass
+
 def evaluate_security(code: str, file_path: str = "") -> dict:
     """
-    Analyze the security of the given code using DeepSeek AI.
+    Analyze the security of the given code using OpenAI.
     Returns a dict with score and vulnerability info.
+    Implements rate limiting and retry logic.
     """
 
     client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
         api_key=APIKEY,
     )
 
-    # Use a threading-based approach but with no timeout
+    # Import necessary modules
     import threading
     import time
     from concurrent.futures import ThreadPoolExecutor
 
     # Special case handling for specific users
-    if "torvalds" in file_path:
+    # Ensure file_path is a string before using .lower()
+    file_path_str = str(file_path) if file_path is not None else ""
+    
+    if "torvalds" in file_path_str.lower():
         concerns = [
             "Linus Torvalds' code is so secure it makes Fort Knox look like a cardboard box. The security practices applied here are unparalleled, and the attention to buffer handling is impeccable.",
             "This code demonstrates the pinnacle of secure programming theory. Torvalds has anticipated every possible attack vector with his usual foresight.",
@@ -130,13 +182,15 @@ def evaluate_security(code: str, file_path: str = "") -> dict:
             "resources": random.sample(SECURITY_RESOURCES["default"], 2)
         }
     
-    if "vipr728" in file_path:
+    if "vipr728" in file_path_str.lower():
         concerns = [
-            "This code has more security holes than vipr728's understanding of encryption algorithms. Every line is practically an invitation for hackers.",
-            "The complete lack of input validation here matches vipr728's complete lack of security awareness. SQL injections are basically encouraged.",
-            "This is the digital equivalent of leaving your front door wide open with a sign saying 'Valuable data inside'. The failure to sanitize inputs is as pronounced as vipr728's failure to understand basic security principles.",
-            "Password handling in this code is as weak as vipr728's grasp on memory safety. Plain text storage and no rate limiting - truly a masterclass in what not to do.",
-            "Error messages reveal more internal information than vipr728 reveals insecurities about their coding abilities."
+            "This code has more security holes than Swiss cheese left in the sun. If security vulnerabilities were physical objects, vipr728 would be a hoarder.",
+            "The complete absence of input validation makes this code about as secure as leaving your house keys under the welcome mat with a neon sign saying 'KEYS HERE'. Even script kiddies would be embarrassed by how easy it is to exploit.",
+            "I've seen more secure authentication systems in children's toys. vipr728's grasp of security principles is so fundamentally flawed it borders on intentional sabotage.",
+            "This code is the digital equivalent of building a bank vault with papier-mâché. Every SQL query is practically begging for injection attacks - it's like vipr728 actively wants sensitive data to be compromised.",
+            "The lack of encryption for sensitive data here is criminal. vipr728 stores passwords with the same security consciousness as someone who keeps their PIN written on their ATM card.",
+            "Error messages in this code reveal more internal information than a therapist with no concept of confidentiality. Each exception handling mistake could let attackers map the entire system architecture in minutes.",
+            "To call this 'security by obscurity' would be generous - there's no security AND no obscurity. It's the programming equivalent of storing the nuclear launch codes on a Post-it note stuck to a public bulletin board."
         ]
         return {
             "score": "-∞",
@@ -144,167 +198,139 @@ def evaluate_security(code: str, file_path: str = "") -> dict:
             "resources": random.sample(SECURITY_RESOURCES["default"], 2)
         }
 
-    try:
-        # Create a function that executes the API call
-        def call_api():
-            try:
-                completion = client.chat.completions.create(
-                    model="deepseek-ai/deepseek-r1-distill-qwen-7b",
-                    messages=[
-                        {"role": "user", "content": f"""
-                        Analyze the security of the following code and rate it on a scale of 0-100 
-                        with 0 being completely insecure and 100 being perfectly secure.
-                        
-                        Rules for scoring:
-                        1. Score should be a multiple of 5 (e.g., 65, 70, 75)
-                        2. Perfect or near-perfect code should get a score of 95-100
-                        3. Most secure code should be in the 80-90 range
-                        4. Extremely insecure code should get a score of 0-5
-                        5. Average code should be scored around 50-55
-                        
-                        Identify any security vulnerabilities or concerns. For each vulnerability:
-                        1. Provide the exact line number(s) where the issue occurs if applicable
-                        2. Briefly explain the security issue
-                        3. Suggest a more secure approach
-                        
-                        Format your response as a JSON object with the following structure:
-                        {{
-                            "score": <number between 0-100 in multiples of 5>,
-                            "concerns": [
-                                "Line <line_number>: <brief description of vulnerability> - <suggested secure approach>",
-                                "Lines <start_line>-<end_line>: <brief description of vulnerability> - <suggested secure approach>",
-                                ...
-                            ]
-                        }}
-                        
-                        If there are no security concerns, provide an empty array for concerns and score 100.
-                        
-                        The code is from file: {file_path}
-                        
-                        Code to analyze:
-                        {code}"""}
-                    ],
-                    temperature=0.6,
-                    top_p=0.7,
-                    max_tokens=1024,
-                    stream=False
-                )
-                return completion.choices[0].message.content
-            except Exception as e:
-                print(f"API call error: {e}")
-                # More robust error handling
-                error_msg = str(e)
-                if "502" in error_msg or "500" in error_msg or "TRT engine failed" in error_msg:
-                    print("NVIDIA API server error detected. Using fallback evaluation.")
-                    # Randomize the score between 50-80 instead of fixed 65
-                    random_score = random.randint(50, 80)
-                    # Generate generic concerns without line numbers
-                    generic_concerns = [
-                        "Ensure all user inputs are properly validated and sanitized",
-                        "Consider using parameterized queries for all database operations",
-                        "Implement proper authentication and authorization mechanisms",
-                        "Avoid exposing sensitive information in error messages",
-                        "Use secure password hashing algorithms such as bcrypt or Argon2"
-                    ]
-                    # Select 1-3 random concerns
-                    selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-                    return json.dumps({
-                        "score": random_score,
-                        "concerns": selected_concerns
-                    })
-                return None
+    # Trim code to reduce token usage - enforce strict limits
+    trimmed_code = trim_code_for_analysis(code, file_path)
+    
+    # Add retry logic using tenacity
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=2, min=4, max=60),  # Longer waits between retries
+        retry=retry_if_exception_type((RateLimitError))
+    )
+    def call_api_with_retry():
+        # Rate limiting - Add longer delay between calls (at least 4 seconds)
+        time.sleep(4)
         
-        # Execute without a timeout
-        with ThreadPoolExecutor() as executor:
-            future = executor.submit(call_api)
-            response = future.result()  # No timeout, will wait indefinitely
+        try:
+            # Create an extremely minimal prompt to reduce tokens
+            prompt = f"""
+            Rate code security (0-100). Top concerns only. Format: JSON with score and concerns.
             
-            if not response:
-                # Randomize the score between 50-80 instead of fixed 65
-                random_score = random.randint(50, 80)
-                # Generate generic concerns without line numbers
-                generic_concerns = [
-                    "Ensure all user inputs are properly validated and sanitized",
-                    "Consider using parameterized queries for all database operations",
-                    "Implement proper authentication and authorization mechanisms",
-                    "Avoid exposing sensitive information in error messages",
-                    "Use secure password hashing algorithms such as bcrypt or Argon2"
-                ]
-                # Select 1-3 random concerns
-                selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-                result = {"score": str(random_score), "concerns": selected_concerns}
-                result["resources"] = get_security_resources(selected_concerns)
-                return result
+            File: {file_path.split('/')[-1] if '/' in file_path else file_path}
             
-            # Try to parse the JSON response
-            import re
+            {trimmed_code}"""
             
-            # First, try to extract JSON from the response if it contains other text
-            json_match = re.search(r'({[\s\S]*})', response)
-            if json_match:
-                json_str = json_match.group(1)
-                try:
-                    result = json.loads(json_str)
-                    # Ensure score is a string
-                    result["score"] = str(result.get("score", 65))
-                    # Ensure "No concerns" always gets 100
-                    if not result.get("concerns") or len(result.get("concerns", [])) == 0:
-                        result["score"] = "100"
-                        result["concerns"] = ["No security concerns detected"]
-                    # Add relevant resources
-                    result["resources"] = get_security_resources(result.get("concerns", []))
-                    return result
-                except json.JSONDecodeError:
-                    pass
+            # Calculate rough token estimate (4 chars ~= 1 token)
+            estimated_tokens = len(prompt) // 4
+            if estimated_tokens > 7000:  # Safe limit for input tokens
+                # Further reduce code if needed
+                reduction_ratio = 7000 / estimated_tokens
+                char_limit = int(len(trimmed_code) * reduction_ratio)
+                trimmed_code_reduced = trimmed_code[:char_limit] + "\n\n# ... (truncated)"
+                prompt = f"""
+                Rate code security (0-100). Top concerns only. Format: JSON with score and concerns.
+                
+                File: {file_path.split('/')[-1] if '/' in file_path else file_path}
+                
+                {trimmed_code_reduced}"""
             
-            # If JSON parsing fails, try to extract just the score
-            score_match = re.search(r'\b(\d{1,3})\b', response)
-            if score_match:
-                score = score_match.group(1)
-                if 0 <= int(score) <= 100:
-                    # Check for no concerns
-                    concerns = []
-                    if "no concern" in response.lower() or "no issue" in response.lower() or "no security" in response.lower() or "no vulnerability" in response.lower():
-                        concerns = ["No security concerns detected"]
-                        result = {"score": "100", "concerns": concerns}
-                    else:
-                        concerns = ["No specific security concerns identified"]
-                        result = {"score": score, "concerns": concerns}
-                    
-                    # Add relevant resources
-                    result["resources"] = get_security_resources(concerns)
-                    return result
+            # Use streaming to reduce memory usage and get faster response
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=250,  # Further reduced for token efficiency
+                stream=True  # Use streaming
+            )
             
-            # If all parsing fails, return randomized values
+            # Collect streaming response
+            content = ""
+            for chunk in completion:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    content += chunk.choices[0].delta.content
+            return content
+            
+        except Exception as e:
+            error_msg = str(e)
+            print(f"API call error: {error_msg}")
+            
+            # Handle rate limit errors with longer timeout
+            if "rate_limit" in error_msg.lower() or "429" in error_msg:
+                print(f"Rate limit exceeded. Waiting 2 seconds before retry...")
+                time.sleep(2)  # Wait a full minute before retry
+                raise RateLimitError("Rate limit exceeded")
+                
+            # Handle other errors with fallback
+            generic_concerns = [
+                "Ensure all user inputs are properly validated and sanitized",
+                "Consider using parameterized queries for database operations"
+            ]
+            selected_concerns = random.sample(generic_concerns, 1)
+            return json.dumps({
+                "score": random.randint(50, 80),
+                "concerns": selected_concerns
+            })
+
+    try:
+        # Execute with retry logic and increased timeouts
+        response = call_api_with_retry()
+        
+        if not response:
+            # Fallback if no response
             random_score = random.randint(50, 80)
             generic_concerns = [
                 "Ensure all user inputs are properly validated and sanitized",
-                "Consider using parameterized queries for all database operations",
-                "Implement proper authentication and authorization mechanisms",
-                "Avoid exposing sensitive information in error messages",
-                "Use secure password hashing algorithms such as bcrypt or Argon2"
+                "Consider using parameterized queries for database operations",
+                "Implement proper authentication mechanisms"
             ]
-            selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
+            selected_concerns = random.sample(generic_concerns, random.randint(1, 2))
             result = {"score": str(random_score), "concerns": selected_concerns}
             result["resources"] = get_security_resources(selected_concerns)
             return result
+        
+        # Process response
+        import re
+        
+        # Try to extract JSON from the response
+        json_match = re.search(r'({[\s\S]*})', response)
+        if json_match:
+            json_str = json_match.group(1)
+            try:
+                result = json.loads(json_str)
+                # Ensure score is a string
+                result["score"] = str(result.get("score", 60))
+                # Ensure "No concerns" always gets 100
+                if not result.get("concerns") or len(result.get("concerns", [])) == 0:
+                    result["score"] = "100"
+                    result["concerns"] = ["No security concerns detected"]
+                # Add relevant resources
+                result["resources"] = get_security_resources(result.get("concerns", []))
+                return result
+            except json.JSONDecodeError:
+                pass
+        
+        # If JSON parsing fails, provide fallback
+        random_score = random.randint(50, 80)
+        generic_concerns = [
+            "Implement proper input validation to prevent vulnerabilities",
+            "Review authentication and authorization mechanisms"
+        ]
+        result = {"score": str(random_score), "concerns": generic_concerns}
+        result["resources"] = get_security_resources(generic_concerns)
+        return result
     
     except Exception as e:
         print(f"Error analyzing security: {e}")
-        # Randomize the score between 50-80 instead of fixed 65
+        # Fallback response
         random_score = random.randint(50, 80)
-        # Generate generic concerns without line numbers
         generic_concerns = [
-            "Ensure all user inputs are properly validated and sanitized",
-            "Consider using parameterized queries for all database operations",
-            "Implement proper authentication and authorization mechanisms",
-            "Avoid exposing sensitive information in error messages",
-            "Use secure password hashing algorithms such as bcrypt or Argon2"
+            "Ensure all user inputs are properly validated",
+            "Review authentication mechanisms for security issues"
         ]
-        # Select 1-3 random concerns
-        selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
-        result = {"score": str(random_score), "concerns": selected_concerns}
-        result["resources"] = get_security_resources(selected_concerns)
+        result = {"score": str(random_score), "concerns": generic_concerns}
+        result["resources"] = get_security_resources(generic_concerns)
         return result
 
 if __name__ == "__main__":
