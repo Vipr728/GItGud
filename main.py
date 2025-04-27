@@ -1,31 +1,29 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
-import requests
-import json
-from github import Github
-from dotenv import load_dotenv
 import os
-from openai import OpenAI, AsyncOpenAI
-from utils.efficiency import evaluate_efficiency
-from utils.security import evaluate_security
-from utils.quality import evaluate_quality
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
-import threading
+import sys
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from github import Github
+from openai import OpenAI
+from dotenv import load_dotenv
 import time
-from tqdm import tqdm
+import json
+import asyncio
+from collections import defaultdict
+import threading
 from queue import Queue
 import random
 
 # Load API keys
 load_dotenv()
 APIKEY = os.getenv("OPENAI_API_KEY")
+GITHUB_TOKEN = os.getenv("ACCESS_TOKEN")
+g = Github(GITHUB_TOKEN)
 
-# Create async client for OpenAI
-async_client = AsyncOpenAI(api_key=APIKEY)
-client = OpenAI(api_key=APIKEY)
+# Import utility functions
+from utils.quality import evaluate_quality
+from utils.security import evaluate_security
+from utils.efficiency import evaluate_efficiency
 
-g = Github(os.getenv("ACCESS_TOKEN"))
-
+# Initialize Flask App
 app = Flask(__name__)
 
 # Add a simple cache for repository analysis results
@@ -184,8 +182,8 @@ def get_user_repos(username, timeout=30, limit=None):
         print(f"Error getting repositories for {username}: {e}")
         return []
 
-async def analyze_repo_async(username, repo):
-    """Async version of analyze_repo that uses AsyncOpenAI for better performance"""
+def analyze_repo(username, repo):
+    """Synchronous version of analyze_repo"""
     # Check if we already have cached results for this repo
     if username in repo_cache and repo['name'] in repo_cache[username]:
         print(f"Using cached analysis for {username}/{repo['name']}")
@@ -220,12 +218,12 @@ async def analyze_repo_async(username, repo):
         
         # Files per extension counter
         extension_counts = {ext: 0 for ext in file_extensions}
-        max_files_per_ext = 3  # Increased from 2
-        max_total_files = 15   # Increased from 10
+        max_files_per_ext = 3
+        max_total_files = 15
         
         # Safety counter to prevent infinite loop
         safety_counter = 0
-        max_iterations = 2000  # Increased from 1000
+        max_iterations = 2000
         
         while contents and len(sample_files) < max_total_files and safety_counter < max_iterations:
             safety_counter += 1
@@ -235,10 +233,10 @@ async def analyze_repo_async(username, repo):
                 try:
                     # Get directory contents
                     directories.append(file_content.path)
-                    if len(directories) <= 10:  # Increased from 5
+                    if len(directories) <= 10:
                         dir_contents = repo_obj.get_contents(file_content.path)
                         if isinstance(dir_contents, list):
-                            contents.extend(dir_contents[:10])  # Increased from 5
+                            contents.extend(dir_contents[:10])
                 except Exception as dir_error:
                     print(f"Error exploring directory {file_content.path}: {dir_error}")
             elif file_content.path.endswith(file_extensions):
@@ -251,40 +249,31 @@ async def analyze_repo_async(username, repo):
                     except Exception as decode_error:
                         print(f"Error decoding {file_content.path}: {decode_error}")
         
-        # Analyze sampled files in parallel using async
+        # Analyze sampled files
         if sample_files:
             security_results = []
             efficiency_results = []
             quality_results = []
             
-            # Create tasks for each file analysis
-            tasks = []
             for path, content in sample_files:
-                # Add tasks for each analysis type
-                tasks.append(evaluate_security(content, path))
-                tasks.append(evaluate_efficiency(content, path))
-                tasks.append(evaluate_quality(content, path))
-            
-            # Process results in an async way
-            results = []
-            for task in tasks:
+                # Run each analysis type
                 try:
-                    result = await task
-                    if result:
-                        results.append(result)
+                    security_result = evaluate_security(content, path)
+                    security_results.append(security_result)
                 except Exception as e:
-                    print(f"Error in async analysis: {e}")
-            
-            # Categorize results
-            for result in results:
-                # Determine which analysis type this is based on the presence of specific keys
-                if isinstance(result, dict):
-                    if 'security' in str(result).lower():
-                        security_results.append(result)
-                    elif 'efficiency' in str(result).lower():
-                        efficiency_results.append(result)
-                    else:
-                        quality_results.append(result)
+                    print(f"Error in security analysis: {e}")
+                
+                try:
+                    efficiency_result = evaluate_efficiency(content, path)
+                    efficiency_results.append(efficiency_result)
+                except Exception as e:
+                    print(f"Error in efficiency analysis: {e}")
+                
+                try:
+                    quality_result = evaluate_quality(content, path)
+                    quality_results.append(quality_result)
+                except Exception as e:
+                    print(f"Error in quality analysis: {e}")
             
             # Process security results
             if security_results:
@@ -392,16 +381,6 @@ async def analyze_repo_async(username, repo):
     
     return repo_results
 
-# Keep a synchronous version for backward compatibility
-def analyze_repo(username, repo):
-    """Synchronous version of analyze_repo that uses asyncio.run for async execution"""
-    loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(analyze_repo_async(username, repo))
-    finally:
-        loop.close()
-
 def download_repo_contents(username, repo_name):
     repo = g.get_repo(f"{username}/{repo_name}")
 
@@ -445,7 +424,8 @@ def download_repo_contents(username, repo_name):
 
     print(f"Analyzed {repo_name} successfully without downloading files.")
 
-async def analyze_repo_concurrently(username, repo_name):
+def analyze_repo_concurrently(username, repo_name):
+    """Synchronous version of concurrent repository analysis"""
     try:
         repo = g.get_repo(f"{username}/{repo_name}")
         contents = repo.get_contents("")
@@ -464,7 +444,7 @@ async def analyze_repo_concurrently(username, repo_name):
                 files_to_analyze.append(file_content)
         
         # Cost-aware sampling: If there are too many files, analyze a representative sample
-        MAX_FILES_TO_ANALYZE = 5  # Further reduced from 10 to 5
+        MAX_FILES_TO_ANALYZE = 5
         if len(files_to_analyze) > MAX_FILES_TO_ANALYZE:
             print(f"Repository has {len(files_to_analyze)} files. Sampling {MAX_FILES_TO_ANALYZE} for analysis.")
             # Sample with bias toward larger files as they might be more important
@@ -475,29 +455,14 @@ async def analyze_repo_concurrently(username, repo_name):
                                          min(MAX_FILES_TO_ANALYZE//2, len(files_to_analyze)-MAX_FILES_TO_ANALYZE//2))
             files_to_analyze = top_files + random_files
         
-        tasks = []
         results = []
         
-        # Use a semaphore to limit concurrent analysis
-        semaphore = asyncio.Semaphore(2)  # Reduced from 3 to 2 concurrent files
-        
-        async def analyze_with_rate_limit(file_content):
-            async with semaphore:
-                # Add a longer delay between API calls
-                await asyncio.sleep(5)  # Increased from 1 to 5 seconds
-                return analyze_file_concurrently(file_content, username, repo_name)
-        
-        # Create tasks for analysis
+        # Analyze each file with proper rate limiting between calls
         for file_content in files_to_analyze:
-            tasks.append(analyze_with_rate_limit(file_content))
-        
-        # Process tasks in batches to avoid overwhelming the API
-        for i in range(0, len(tasks), 2):  # Reduced batch size from 3 to 2
-            batch = tasks[i:i+2]
-            batch_results = await asyncio.gather(*batch)
-            results.extend(batch_results)
-            # Add longer delay between batches
-            await asyncio.sleep(10)  # Increased from 2 to 10 seconds
+            # Add delay between API calls to avoid rate limits
+            time.sleep(5)
+            result = analyze_file_concurrently(file_content, username, repo_name)
+            results.append(result)
         
         return results
     except Exception as e:
@@ -561,18 +526,15 @@ def analyze():
     all_results = []
 
     # PRIORITY QUEUES: Only analyze repositories in sequence to avoid overwhelming the API
-    # Process at most 3 repositories to avoid rate limits (reduced from 5)
+    # Process at most 3 repositories to avoid rate limits
     repos_to_analyze = repos[:min(3, len(repos))]
     
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
     for repo in repos_to_analyze:
         try:
-            # Add a longer delay between repository processing
-            time.sleep(5)  # Increased from 2 to 15 seconds
+            # Add a delay between repository processing
+            time.sleep(5)
             
-            results = loop.run_until_complete(analyze_repo_concurrently(username, repo['name']))
+            results = analyze_repo_concurrently(username, repo['name'])
             # Format results for display
             formatted_results = {
                 'name': repo['name'],
@@ -619,13 +581,11 @@ def analyze():
                 'quality': 'Error'
             })
 
-    loop.close()
-
     return render_template('index.html', results=all_results, username=username)
 
 @app.route('/repo/<username>/<repo_name>')
 @app.route('/repo_details/<username>/<repo_name>')
-async def repo_details(username, repo_name):
+def repo_details(username, repo_name):
     """Route to display detailed repository analysis - performs on-demand analysis when accessed"""
     try:
         # Check if this repo is already in the cache and has been analyzed
@@ -659,8 +619,8 @@ async def repo_details(username, repo_name):
         # Show loading message to user
         print(f"Analyzing repository {username}/{repo_name}...")
         
-        # Analyze the repository using the async version directly
-        result = await analyze_repo_async(username, repo)
+        # Analyze the repository using the synchronous version
+        result = analyze_repo(username, repo)
         
         # Mark as analyzed
         result['analyzed'] = True
@@ -746,7 +706,7 @@ def generate_readme_badge(username):
         return render_template('error.html', error=f"Error generating README badge: {str(e)}")
 
 @app.route('/user-report/<username>')
-async def user_report(username):
+def user_report(username):
     """Generate a comprehensive GitHub report with stats, common errors, and recommendations.
     This performs full analysis on all the user's repositories."""
     try:
@@ -781,21 +741,13 @@ async def user_report(username):
                 if repo['name'] not in processed_repos:
                     repos_to_analyze.append(repo)
                 
-            # Analyze repositories that need it with asyncio.gather for better concurrency
-            tasks = []
+            # Analyze repositories sequentially
             for repo in repos_to_analyze:
-                tasks.append(analyze_repo_async(username, repo))
-            
-            # Run up to 3 tasks at a time to avoid rate limits
-            batch_size = 3
-            for i in range(0, len(tasks), batch_size):
-                batch = tasks[i:i+batch_size]
-                batch_results = await asyncio.gather(*batch)
-                
-                for j, result in enumerate(batch_results):
-                    repo_name = repos_to_analyze[i+j]['name']
-                    result['analyzed'] = True  # Mark as analyzed
-                    processed_repos[repo_name] = result
+                # Add delay between repository analyses
+                time.sleep(5)
+                result = analyze_repo(username, repo)
+                result['analyzed'] = True  # Mark as analyzed
+                processed_repos[repo['name']] = result
             
             # Combine all results
             results = list(processed_repos.values())
@@ -823,31 +775,20 @@ async def user_report(username):
                     else:
                         repo['overall_score'] = 'N/A'
             
-            # Update the cache
+            # Store in cache
             user_cache[username] = results
         else:
             # Use cached results
             results = user_cache[username]
-            
-        # Continue with the rest of the function as before
-        # Calculate average scores across all repositories
+        
+        # Calculate overall statistics
         security_scores = []
         efficiency_scores = []
         quality_scores = []
         overall_scores = []
         
-        # Collect all concerns for analysis
-        all_security_concerns = []
-        all_efficiency_concerns = []
-        all_quality_concerns = []
-        
         for repo in results:
             try:
-                # Only include repositories that have been analyzed
-                if not repo.get('analyzed', False):
-                    continue
-                    
-                # Collect scores
                 if repo['security']['score'] not in ['N/A', 'Error', 'Click to analyze']:
                     security_scores.append(float(repo['security']['score']))
                 if repo['efficiency']['score'] not in ['N/A', 'Error', 'Click to analyze']:
@@ -856,11 +797,6 @@ async def user_report(username):
                     quality_scores.append(float(repo['quality']['score']))
                 if repo.get('overall_score') not in ['N/A', 'Error', 'Click to analyze']:
                     overall_scores.append(float(repo['overall_score']))
-                
-                # Collect concerns
-                all_security_concerns.extend(repo['security'].get('concerns', []))
-                all_efficiency_concerns.extend(repo['efficiency'].get('concerns', []))
-                all_quality_concerns.extend(repo['quality'].get('concerns', []))
             except (ValueError, KeyError):
                 pass
         
@@ -870,71 +806,26 @@ async def user_report(username):
         avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 'N/A'
         avg_overall = sum(overall_scores) / len(overall_scores) if overall_scores else 'N/A'
         
-        # Filter out "No concerns detected" messages
-        all_security_concerns = [concern for concern in all_security_concerns if not "No security concerns detected" in concern]
-        all_efficiency_concerns = [concern for concern in all_efficiency_concerns if not "No efficiency concerns detected" in concern]
-        all_quality_concerns = [concern for concern in all_quality_concerns if not "No quality concerns detected" in concern]
-        
-        # Get frequency of each concern
-        from collections import Counter
-        
-        security_counter = Counter(all_security_concerns)
-        efficiency_counter = Counter(all_efficiency_concerns)
-        quality_counter = Counter(all_quality_concerns)
-        
-        # Get top 5 most common concerns
-        top_security_concerns = security_counter.most_common(5)
-        top_efficiency_concerns = efficiency_counter.most_common(5)
-        top_quality_concerns = quality_counter.most_common(5)
-        
-        # Define help resources
-        security_resources = [
-            {"title": "OWASP Top Ten", "url": "https://owasp.org/www-project-top-ten/"},
-            {"title": "Web Security Academy", "url": "https://portswigger.net/web-security"},
-            {"title": "Security Best Practices", "url": "https://cheatsheetseries.owasp.org/"}
-        ]
-        
-        efficiency_resources = [
-            {"title": "Performance Best Practices", "url": "https://web.dev/performance-optimizing-content-efficiency/"},
-            {"title": "Algorithmic Complexity Guide", "url": "https://www.bigocheatsheet.com/"},
-            {"title": "Code Optimization Techniques", "url": "https://github.com/donnemartin/system-design-primer"}
-        ]
-        
-        quality_resources = [
-            {"title": "Clean Code Principles", "url": "https://github.com/ryanmcdermott/clean-code-javascript"},
-            {"title": "Code Review Best Practices", "url": "https://google.github.io/eng-practices/review/"},
-            {"title": "Refactoring Techniques", "url": "https://refactoring.com/catalog/"}
-        ]
-        
-        # Prepare data for the template
-        report_data = {
-            'username': username,
-            'security': {
-                'score': round(avg_security) if avg_security != 'N/A' else 'N/A',
-                'top_concerns': top_security_concerns,
-                'resources': security_resources
-            },
-            'efficiency': {
-                'score': round(avg_efficiency) if avg_efficiency != 'N/A' else 'N/A',
-                'top_concerns': top_efficiency_concerns,
-                'resources': efficiency_resources
-            },
-            'quality': {
-                'score': round(avg_quality) if avg_quality != 'N/A' else 'N/A',
-                'top_concerns': top_quality_concerns,
-                'resources': quality_resources
-            },
-            'overall': round(avg_overall) if avg_overall != 'N/A' else 'N/A',
-            'repo_count': len(results)
-        }
-        
-        # Prepare badge data for README markdown
+        # Prepare data for badges
         badge_data = {
             'username': username,
             'security': round(avg_security) if avg_security != 'N/A' else 'N/A',
             'efficiency': round(avg_efficiency) if avg_efficiency != 'N/A' else 'N/A',
             'quality': round(avg_quality) if avg_quality != 'N/A' else 'N/A',
-            'overall': round(avg_overall) if avg_overall != 'N/A' else 'N/A',
+            'overall': round(avg_overall) if avg_overall != 'N/A' else 'N/A'
+        }
+        
+        # Prepare report data
+        report_data = {
+            'username': username,
+            'repos': results,
+            'stats': {
+                'security': avg_security if avg_security != 'N/A' else 'N/A',
+                'efficiency': avg_efficiency if avg_efficiency != 'N/A' else 'N/A',
+                'quality': avg_quality if avg_quality != 'N/A' else 'N/A',
+                'overall': avg_overall if avg_overall != 'N/A' else 'N/A',
+                'repo_count': len(results)
+            }
         }
         
         return render_template('user_report.html', report=report_data, badge=badge_data)
