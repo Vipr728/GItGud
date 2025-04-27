@@ -3,8 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Doctor Report for {{ report.username }}</title>
+    <title>GitGud Report for {{ report.username }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Process concerns from repositories
+        function processConcerns(repos, category) {
+            const concernCounts = {};
+            
+            repos.forEach(repo => {
+                if (repo[category] && repo[category].concerns && Array.isArray(repo[category].concerns)) {
+                    repo[category].concerns.forEach(concern => {
+                        if (concern && typeof concern === 'string' && 
+                            !['Unable to analyze code', 'Analysis timed out', 'No specific concerns identified'].includes(concern)) {
+                            concernCounts[concern] = (concernCounts[concern] || 0) + 1;
+                        }
+                    });
+                }
+            });
+            
+            // Convert to array of [concern, count] pairs and sort by count
+            return Object.entries(concernCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5); // Get top 5 concerns
+        }
+        
+        // Get recommended resources based on concerns
+        function getResources(category, concerns) {
+            const resources = {
+                security: [
+                    { url: "https://owasp.org/www-project-top-ten/", title: "OWASP Top 10" },
+                    { url: "https://cheatsheetseries.owasp.org/", title: "OWASP Cheat Sheets" },
+                    { url: "https://snyk.io/learn/", title: "Snyk Security Learning" }
+                ],
+                efficiency: [
+                    { url: "https://web.dev/learn/performance/", title: "Web Performance Guide" },
+                    { url: "https://developer.mozilla.org/en-US/docs/Learn/Performance", title: "MDN Performance Docs" },
+                    { url: "https://github.com/donnemartin/system-design-primer", title: "System Design Primer" }
+                ],
+                quality: [
+                    { url: "https://refactoring.guru/refactoring", title: "Refactoring Techniques" },
+                    { url: "https://martinfowler.com/articles/refactoring-documentation/", title: "Martin Fowler's Refactoring Guide" },
+                    { url: "https://clean-code-developer.com/", title: "Clean Code Principles" }
+                ]
+            };
+            
+            if (concerns && concerns.length > 0) {
+                // Return basic resources for the category
+                return resources[category] || [];
+            } else {
+                // Return just the first resource as default
+                return resources[category] ? [resources[category][0]] : [];
+            }
+        }
+    </script>
     <style>
         :root {
             /* Light Theme Variables */
@@ -467,19 +518,19 @@
 
     <div class="container">
         <header>
-            <h1>GitHub Doctor Report</h1>
+            <h1>GitGud Report</h1>
             <div class="username">{{ report.username }}</div>
-            <div class="repo-count">Analysis based on {{ report.repo_count }} repositories</div>
+            <div class="repo-count">Analysis based on {{ report.stats.repo_count }} repositories</div>
         </header>
         
         <!-- Overall Score -->
         <div class="overall-score-section">
-            <div class="overall-score-label">GitHub Doctor ELO</div>
+            <div class="overall-score-label">GitGud ELO</div>
             
-            {% if report.overall == "N/A" %}
+            {% if report.stats.overall == "N/A" %}
                 <div class="overall-score-circle score-na">N/A</div>
             {% else %}
-                <div class="overall-score-circle">{{ report.overall }}</div>
+                <div class="overall-score-circle">{{ report.stats.overall }}</div>
             {% endif %}
             
             <p class="score-description">
@@ -494,44 +545,64 @@
                 <div class="metric-header">
                     <div class="metric-title">
                         <span>Security</span>
-                        {% if report.security.score == "N/A" %}
+                        {% if report.stats.security == "N/A" %}
                             <span class="metric-score score-na">N/A</span>
-                        {% elif report.security.score >= 70 %}
-                            <span class="metric-score score-high">{{ report.security.score }}</span>
-                        {% elif report.security.score >= 40 %}
-                            <span class="metric-score score-medium">{{ report.security.score }}</span>
+                        {% elif report.stats.security >= 70 %}
+                            <span class="metric-score score-high">{{ report.stats.security }}</span>
+                        {% elif report.stats.security >= 40 %}
+                            <span class="metric-score score-medium">{{ report.stats.security }}</span>
                         {% else %}
-                            <span class="metric-score score-low">{{ report.security.score }}</span>
+                            <span class="metric-score score-low">{{ report.stats.security }}</span>
                         {% endif %}
                     </div>
                 </div>
                 <div class="metric-body">
                     <div class="concerns-list">
                         <h3 class="section-subheading">Common Security Concerns</h3>
-                        {% if report.security.top_concerns %}
-                            {% for concern, count in report.security.top_concerns %}
-                                <div class="concern-item">
-                                    <div class="concern-text">{{ concern }}</div>
-                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="no-concerns">No security concerns detected</p>
-                        {% endif %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'security');
+                                if (concerns.length === 0) {
+                                    return '<p class="no-concerns">No security concerns detected</p>';
+                                }
+                                
+                                let html = '';
+                                concerns.forEach(([concern, count]) => {
+                                    html += `
+                                        <div class="concern-item">
+                                            <div class="concern-text">${concern}</div>
+                                            <div class="concern-count">Found ${count} time${count > 1 ? 's' : ''}</div>
+                                        </div>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </div>
                     
                     <h3 class="section-subheading">Recommended Resources</h3>
                     <ul class="resources-list">
-                        {% for resource in report.security.resources %}
-                            <li class="resource-item">
-                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    {{ resource.title }}
-                                </a>
-                            </li>
-                        {% endfor %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'security');
+                                const resources = getResources('security', concerns);
+                                
+                                let html = '';
+                                resources.forEach(resource => {
+                                    html += `
+                                        <li class="resource-item">
+                                            <a href="${resource.url}" target="_blank" class="resource-link">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                                ${resource.title}
+                                            </a>
+                                        </li>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </ul>
                 </div>
             </div>
@@ -541,44 +612,64 @@
                 <div class="metric-header">
                     <div class="metric-title">
                         <span>Efficiency</span>
-                        {% if report.efficiency.score == "N/A" %}
+                        {% if report.stats.efficiency == "N/A" %}
                             <span class="metric-score score-na">N/A</span>
-                        {% elif report.efficiency.score >= 70 %}
-                            <span class="metric-score score-high">{{ report.efficiency.score }}</span>
-                        {% elif report.efficiency.score >= 40 %}
-                            <span class="metric-score score-medium">{{ report.efficiency.score }}</span>
+                        {% elif report.stats.efficiency >= 70 %}
+                            <span class="metric-score score-high">{{ report.stats.efficiency }}</span>
+                        {% elif report.stats.efficiency >= 40 %}
+                            <span class="metric-score score-medium">{{ report.stats.efficiency }}</span>
                         {% else %}
-                            <span class="metric-score score-low">{{ report.efficiency.score }}</span>
+                            <span class="metric-score score-low">{{ report.stats.efficiency }}</span>
                         {% endif %}
                     </div>
                 </div>
                 <div class="metric-body">
                     <div class="concerns-list">
                         <h3 class="section-subheading">Common Efficiency Concerns</h3>
-                        {% if report.efficiency.top_concerns %}
-                            {% for concern, count in report.efficiency.top_concerns %}
-                                <div class="concern-item">
-                                    <div class="concern-text">{{ concern }}</div>
-                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="no-concerns">No efficiency concerns detected</p>
-                        {% endif %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'efficiency');
+                                if (concerns.length === 0) {
+                                    return '<p class="no-concerns">No efficiency concerns detected</p>';
+                                }
+                                
+                                let html = '';
+                                concerns.forEach(([concern, count]) => {
+                                    html += `
+                                        <div class="concern-item">
+                                            <div class="concern-text">${concern}</div>
+                                            <div class="concern-count">Found ${count} time${count > 1 ? 's' : ''}</div>
+                                        </div>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </div>
                     
                     <h3 class="section-subheading">Recommended Resources</h3>
                     <ul class="resources-list">
-                        {% for resource in report.efficiency.resources %}
-                            <li class="resource-item">
-                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    {{ resource.title }}
-                                </a>
-                            </li>
-                        {% endfor %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'efficiency');
+                                const resources = getResources('efficiency', concerns);
+                                
+                                let html = '';
+                                resources.forEach(resource => {
+                                    html += `
+                                        <li class="resource-item">
+                                            <a href="${resource.url}" target="_blank" class="resource-link">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                                ${resource.title}
+                                            </a>
+                                        </li>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </ul>
                 </div>
             </div>
@@ -588,44 +679,64 @@
                 <div class="metric-header">
                     <div class="metric-title">
                         <span>Code Quality</span>
-                        {% if report.quality.score == "N/A" %}
+                        {% if report.stats.quality == "N/A" %}
                             <span class="metric-score score-na">N/A</span>
-                        {% elif report.quality.score >= 70 %}
-                            <span class="metric-score score-high">{{ report.quality.score }}</span>
-                        {% elif report.quality.score >= 40 %}
-                            <span class="metric-score score-medium">{{ report.quality.score }}</span>
+                        {% elif report.stats.quality >= 70 %}
+                            <span class="metric-score score-high">{{ report.stats.quality }}</span>
+                        {% elif report.stats.quality >= 40 %}
+                            <span class="metric-score score-medium">{{ report.stats.quality }}</span>
                         {% else %}
-                            <span class="metric-score score-low">{{ report.quality.score }}</span>
+                            <span class="metric-score score-low">{{ report.stats.quality }}</span>
                         {% endif %}
                     </div>
                 </div>
                 <div class="metric-body">
                     <div class="concerns-list">
                         <h3 class="section-subheading">Common Quality Concerns</h3>
-                        {% if report.quality.top_concerns %}
-                            {% for concern, count in report.quality.top_concerns %}
-                                <div class="concern-item">
-                                    <div class="concern-text">{{ concern }}</div>
-                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
-                                </div>
-                            {% endfor %}
-                        {% else %}
-                            <p class="no-concerns">No code quality concerns detected</p>
-                        {% endif %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'quality');
+                                if (concerns.length === 0) {
+                                    return '<p class="no-concerns">No code quality concerns detected</p>';
+                                }
+                                
+                                let html = '';
+                                concerns.forEach(([concern, count]) => {
+                                    html += `
+                                        <div class="concern-item">
+                                            <div class="concern-text">${concern}</div>
+                                            <div class="concern-count">Found ${count} time${count > 1 ? 's' : ''}</div>
+                                        </div>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </div>
                     
                     <h3 class="section-subheading">Recommended Resources</h3>
                     <ul class="resources-list">
-                        {% for resource in report.quality.resources %}
-                            <li class="resource-item">
-                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                    {{ resource.title }}
-                                </a>
-                            </li>
-                        {% endfor %}
+                        <script>
+                            document.write(function() {
+                                const concerns = processConcerns({{ report.repos|tojson }}, 'quality');
+                                const resources = getResources('quality', concerns);
+                                
+                                let html = '';
+                                resources.forEach(resource => {
+                                    html += `
+                                        <li class="resource-item">
+                                            <a href="${resource.url}" target="_blank" class="resource-link">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                </svg>
+                                                ${resource.title}
+                                            </a>
+                                        </li>
+                                    `;
+                                });
+                                return html;
+                            }());
+                        </script>
                     </ul>
                 </div>
             </div>
@@ -633,21 +744,21 @@
         
         <!-- README Badge Section -->
         <div class="badge-section">
-            <h2 class="section-subheading">GitHub README Badge</h2>
-            <p>Show off your GitHub Doctor score on your profile:</p>
+            <h2 class="section-subheading">GitGud README Badge</h2>
+            <p>Show off your GitGud ELO on your profile:</p>
             
             <div class="badge-container">
                 <div class="badge-preview">
                     <!-- Overall Score Badge -->
                     <div class="badge">
-                        <span class="badge-label">GitHub Doctor Score</span>
-                        {% if badge.overall != 'N/A' %}
-                            {% if badge.overall >= 70 %}
-                                <span class="badge-value high">{{ badge.overall }}</span>
-                            {% elif badge.overall >= 40 %}
-                                <span class="badge-value medium">{{ badge.overall }}</span>
+                        <span class="badge-label">GitGud Score</span>
+                        {% if report.stats.overall != 'N/A' %}
+                            {% if report.stats.overall >= 70 %}
+                                <span class="badge-value high">{{ report.stats.overall }}</span>
+                            {% elif report.stats.overall >= 40 %}
+                                <span class="badge-value medium">{{ report.stats.overall }}</span>
                             {% else %}
-                                <span class="badge-value low">{{ badge.overall }}</span>
+                                <span class="badge-value low">{{ report.stats.overall }}</span>
                             {% endif %}
                         {% else %}
                             <span class="badge-value">N/A</span>
@@ -660,9 +771,9 @@
                     <p>Copy and paste this into your GitHub README.md:</p>
                     
                     <div class="code-block" id="markdown-code">
-[![GitHub Doctor Score](https://img.shields.io/badge/GitHub_Doctor_Score-{{ badge.overall if badge.overall != 'N/A' else 'N%2FA' }}-{% if badge.overall != 'N/A' %}{% if badge.overall >= 70 %}success{% elif badge.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](http://127.0.0.1:5000/user-report/{{ badge.username }})
+[![GitGud Score](https://img.shields.io/badge/GitGud_Score-{{ report.stats.overall if report.stats.overall != 'N/A' else 'N%2FA' }}-{% if report.stats.overall != 'N/A' %}{% if report.stats.overall >= 70 %}success{% elif report.stats.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](http://127.0.0.1:5000/user-report/{{ report.username }})
 
-**Security:** {{ badge.security if badge.security != 'N/A' else 'N/A' }} | **Efficiency:** {{ badge.efficiency if badge.efficiency != 'N/A' else 'N/A' }} | **Quality:** {{ badge.quality if badge.quality != 'N/A' else 'N/A' }}
+**Security:** {{ report.stats.security if report.stats.security != 'N/A' else 'N/A' }} | **Efficiency:** {{ report.stats.efficiency if report.stats.efficiency != 'N/A' else 'N/A' }} | **Quality:** {{ report.stats.quality if report.stats.quality != 'N/A' else 'N/A' }}
                     </div>
                     
                     <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>

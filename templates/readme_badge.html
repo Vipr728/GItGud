@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Doctor Badge for {{ badge.username }}</title>
+    <title>GitGud Badge for {{ badge.username }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -319,7 +319,7 @@
                 <p>Copy and paste this into your GitHub README.md:</p>
                 
                 <div class="code-block" id="markdown-code">
-[![GitHub Doctor Score](https://img.shields.io/badge/GitHub_Doctor_Score-{{ badge.overall if badge.overall != 'N/A' else 'N%2FA' }}-{% if badge.overall != 'N/A' %}{% if badge.overall >= 70 %}success{% elif badge.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](http://127.0.0.1:5000/user-report/{{ badge.username }})
+[![GitGud Score](https://img.shields.io/badge/GitHub_Doctor_Score-{{ badge.overall if badge.overall != 'N/A' else 'N%2FA' }}-{% if badge.overall != 'N/A' %}{% if badge.overall >= 70 %}success{% elif badge.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](http://127.0.0.1:5000/user-report/{{ badge.username }})
 
 **Security:** {{ badge.security if badge.security != 'N/A' else 'N/A' }} | **Efficiency:** {{ badge.efficiency if badge.efficiency != 'N/A' else 'N/A' }} | **Quality:** {{ badge.quality if badge.quality != 'N/A' else 'N/A' }}
                 </div>
