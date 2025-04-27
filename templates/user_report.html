@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitGud Report for {{ report.username }}</title>
+    <title>GitGud Report for {{ report.username }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="styleshee" href="{{ url_for('static', filename='css/report.css') }}">
     <script>
         // Process concerns from repositories
         function processConcerns(repos, category) {

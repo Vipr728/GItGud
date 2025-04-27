@@ -5,281 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GitGud Badge for {{ badge.username }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            /* Light Theme Variables */
-            --primary-color: #6366F1;
-            --secondary-color: #4F46E5;
-            --background-color: #F9FAFB;
-            --container-bg: white;
-            --text-color: #1F2937;
-            --border-color: #E5E7EB;
-            --success-color: #10B981;
-            --warning-color: #F59E0B;
-            --error-color: #EF4444;
-            --accent-color: #8B5CF6;
-            --badge-container-bg: #f8f9fa;
-            --badge-preview-bg: white;
-            --badge-dash-color: #ccc;
-            --code-bg: #f1f5f9;
-            --instructions-bg: #f8f9fa;
-            --gradient-bg: linear-gradient(to right, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        [data-theme="dark"] {
-            --primary-color: #818CF8;
-            --secondary-color: #6366F1;
-            --background-color: #111827;
-            --container-bg: #1F2937;
-            --text-color: #F9FAFB;
-            --border-color: #374151;
-            --success-color: #10B981;
-            --warning-color: #F59E0B;
-            --error-color: #EF4444;
-            --accent-color: #A78BFA;
-            --badge-container-bg: #1E293B;
-            --badge-preview-bg: #374151;
-            --badge-dash-color: #4B5563;
-            --code-bg: #1E293B;
-            --instructions-bg: #1E293B;
-            --gradient-bg: linear-gradient(to right, rgba(99, 102, 241, 0.2), rgba(167, 139, 250, 0.1));
-            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--background-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            padding: 2rem;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: var(--container-bg);
-            border-radius: 12px;
-            box-shadow: var(--card-shadow);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            background: var(--container-bg);
-            padding: 10px 15px;
-            border-radius: 50px;
-            box-shadow: var(--card-shadow);
-            transition: background-color 0.3s ease;
-        }
-
-        .theme-toggle label {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-            margin-left: 10px;
-        }
-
-        .theme-toggle label input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(to right, #EC4899, #DB2777);
-            transition: 0.4s;
-            border-radius: 30px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: 0.4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background: linear-gradient(to right, #4F46E5, #7C3AED);
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-
-        .theme-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-color);
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            color: var(--primary-color);
-            text-align: center;
-        }
-
-        .badge-container {
-            background-color: var(--badge-container-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .badge-preview {
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background-color: var(--badge-preview-bg);
-            border: 1px dashed var(--badge-dash-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            border-radius: 6px;
-            overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .badge-label {
-            background-color: #555;
-            color: white;
-            padding: 0.5rem 0.75rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .badge-value {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.5rem 0.75rem;
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .badge-value.high {
-            background-color: var(--success-color);
-        }
-
-        .badge-value.medium {
-            background-color: var(--warning-color);
-        }
-
-        .badge-value.low {
-            background-color: var(--error-color);
-        }
-
-        .markdown-container {
-            margin-top: 2rem;
-        }
-
-        .code-block {
-            background-color: var(--code-bg);
-            padding: 1rem;
-            border-radius: 6px;
-            font-family: monospace;
-            overflow-x: auto;
-            white-space: pre-wrap;
-            margin-bottom: 1rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .copy-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .copy-btn:hover {
-            background-color: var(--secondary-color);
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 1.5rem;
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .instructions {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: var(--instructions-bg);
-            border-radius: 6px;
-            border-left: 4px solid var(--primary-color);
-            transition: background-color 0.3s ease;
-        }
-
-        .instructions h3 {
-            margin-bottom: 0.5rem;
-            color: var(--primary-color);
-        }
-
-        .instructions ol {
-            margin-left: 1.5rem;
-        }
-
-        .instructions li {
-            margin-bottom: 0.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .theme-toggle {
-                top: 10px;
-                right: 10px;
-                padding: 8px 12px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/readme.css') }}">
+   
 </head>
 <body>
     <div class="theme-toggle">
@@ -292,14 +19,14 @@
     </div>
 
     <div class="container">
-        <h1>GitHub Doctor Badge for {{ badge.username }}</h1>
+        <h1>GitGud Badge for {{ badge.username }}</h1>
         
         <div class="badge-container">
             <h2>Preview</h2>
             <div class="badge-preview">
                 <!-- Overall Score Badge -->
                 <div class="badge">
-                    <span class="badge-label">GitHub Doctor Score</span>
+                    <span class="badge-label">GitGud Score</span>
                     {% if badge.overall != 'N/A' %}
                         {% if badge.overall >= 70 %}
                             <span class="badge-value high">{{ badge.overall }}</span>
@@ -336,7 +63,7 @@
                 <li>Paste the code where you want the badge to appear.</li>
                 <li>Commit the changes.</li>
             </ol>
-            <p>The badge will link back to your GitHub Doctor analysis.</p>
+            <p>The badge will link back to your GitGud analysis.</p>
         </div>
         
         <a href="/?username={{ badge.username }}" class="back-link">← Back to Repository Analysis</a>
