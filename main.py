@@ -216,7 +216,7 @@ def analyze_repo(username, repo):
         # Sample files: collect up to 5 files of each supported type
         sample_files = []
         directories = []
-        file_extensions = (".py", ".js", ".java", ".cpp", ".c", ".ts", ".dart", ".swift", ".kt", ".html", ".css", ".m", ".h", ".cs")
+        file_extensions = (".py", ".js", ".java", ".cpp", ".c", ".ts", ".dart", ".swift", ".kt", ".html", ".css", ".m", ".h", ".cs", ".lua")
         
         # Files per extension counter
         extension_counts = {ext: 0 for ext in file_extensions}
@@ -677,16 +677,24 @@ def generate_readme_badge(username):
         
         for repo in results:
             try:
-                if repo['security']['score'] not in ['N/A', 'Error']:
-                    security_scores.append(float(repo['security']['score']))
-                if repo['efficiency']['score'] not in ['N/A', 'Error']:
-                    efficiency_scores.append(float(repo['efficiency']['score']))
-                if repo['quality']['score'] not in ['N/A', 'Error']:
-                    quality_scores.append(float(repo['quality']['score']))
-                if repo.get('overall_score') not in ['N/A', 'Error']:
+                # Check if the repo has the necessary attributes before accessing them
+                if isinstance(repo, dict) and 'security' in repo and isinstance(repo['security'], dict) and 'score' in repo['security']:
+                    if repo['security']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        security_scores.append(float(repo['security']['score']))
+                
+                if isinstance(repo, dict) and 'efficiency' in repo and isinstance(repo['efficiency'], dict) and 'score' in repo['efficiency']:
+                    if repo['efficiency']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        efficiency_scores.append(float(repo['efficiency']['score']))
+                
+                if isinstance(repo, dict) and 'quality' in repo and isinstance(repo['quality'], dict) and 'score' in repo['quality']:
+                    if repo['quality']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        quality_scores.append(float(repo['quality']['score']))
+                
+                if repo.get('overall_score') not in ['N/A', 'Error', 'Click to analyze']:
                     overall_scores.append(float(repo['overall_score']))
-            except (ValueError, KeyError):
-                pass
+            except (ValueError, KeyError, TypeError) as e:
+                print(f"Error processing repo scores: {e}")
+                continue
         
         # Calculate averages
         avg_security = sum(security_scores) / len(security_scores) if security_scores else 'N/A'
@@ -792,16 +800,24 @@ def user_report(username):
         
         for repo in results:
             try:
-                if repo['security']['score'] not in ['N/A', 'Error', 'Click to analyze']:
-                    security_scores.append(float(repo['security']['score']))
-                if repo['efficiency']['score'] not in ['N/A', 'Error', 'Click to analyze']:
-                    efficiency_scores.append(float(repo['efficiency']['score']))
-                if repo['quality']['score'] not in ['N/A', 'Error', 'Click to analyze']:
-                    quality_scores.append(float(repo['quality']['score']))
+                # Check if the repo has the necessary attributes before accessing them
+                if isinstance(repo, dict) and 'security' in repo and isinstance(repo['security'], dict) and 'score' in repo['security']:
+                    if repo['security']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        security_scores.append(float(repo['security']['score']))
+                
+                if isinstance(repo, dict) and 'efficiency' in repo and isinstance(repo['efficiency'], dict) and 'score' in repo['efficiency']:
+                    if repo['efficiency']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        efficiency_scores.append(float(repo['efficiency']['score']))
+                
+                if isinstance(repo, dict) and 'quality' in repo and isinstance(repo['quality'], dict) and 'score' in repo['quality']:
+                    if repo['quality']['score'] not in ['N/A', 'Error', 'Click to analyze']:
+                        quality_scores.append(float(repo['quality']['score']))
+                
                 if repo.get('overall_score') not in ['N/A', 'Error', 'Click to analyze']:
                     overall_scores.append(float(repo['overall_score']))
-            except (ValueError, KeyError):
-                pass
+            except (ValueError, KeyError, TypeError) as e:
+                print(f"Error processing repo scores: {e}")
+                continue
         
         # Calculate averages
         avg_security = sum(security_scores) / len(security_scores) if security_scores else 'N/A'
@@ -823,10 +839,10 @@ def user_report(username):
             'username': username,
             'repos': results,
             'stats': {
-                'security': avg_security if avg_security != 'N/A' else 'N/A',
-                'efficiency': avg_efficiency if avg_efficiency != 'N/A' else 'N/A',
-                'quality': avg_quality if avg_quality != 'N/A' else 'N/A',
-                'overall': avg_overall if avg_overall != 'N/A' else 'N/A',
+                'security': round(avg_security,1) if avg_security != 'N/A' else 'N/A',
+                'efficiency': round(avg_efficiency,1) if avg_efficiency != 'N/A' else 'N/A',
+                'quality': round(avg_quality,1) if avg_quality != 'N/A' else 'N/A',
+                'overall': round(avg_overall,1) if avg_overall != 'N/A' else 'N/A',
                 'repo_count': len(results)
             }
         }

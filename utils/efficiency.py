@@ -10,97 +10,52 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 APIKEY = os.getenv("OPENAI_API_KEY")
 
-# Dictionary of efficiency resources for common issues
+# Updated to randomly select 3 resources from a larger list
 EFFICIENCY_RESOURCES = {
     "time complexity": [
         {"title": "Big O Notation Explained", "url": "https://www.freecodecamp.org/news/big-o-notation-why-it-matters-and-why-it-doesnt-1674cfa8a23c/"},
-        {"title": "Time Complexity Analysis", "url": "https://www.geeksforgeeks.org/analysis-of-algorithms-set-1-asymptotic-analysis/"}
+        {"title": "Time Complexity Analysis", "url": "https://www.geeksforgeeks.org/analysis-of-algorithms-set-1-asymptotic-analysis/"},
+        {"title": "Algorithm Complexity Basics", "url": "https://www.baeldung.com/cs/algorithm-complexity"},
+        {"title": "Understanding Big O", "url": "https://www.interviewcake.com/article/python/big-o-notation-time-and-space-complexity"},
+        {"title": "Algorithm Efficiency", "url": "https://www.toptal.com/developers/blog/algorithm-efficiency"},
+        {"title": "Optimizing Algorithms", "url": "https://www.geeksforgeeks.org/optimization-techniques-program-optimization/"}
     ],
     "space complexity": [
         {"title": "Understanding Space Complexity", "url": "https://www.baeldung.com/cs/space-complexity"},
-        {"title": "Space Complexity Optimization", "url": "https://medium.com/@info.gildacademy/understanding-time-and-space-complexity-in-algorithms-b77091dd9393"}
-    ],
-    "algorithms": [
-        {"title": "Algorithm Design Manual", "url": "https://www.algorist.com/"},
-        {"title": "Efficient Algorithm Design", "url": "https://algs4.cs.princeton.edu/home/"}
-    ],
-    "data structures": [
-        {"title": "Data Structures Explained", "url": "https://www.freecodecamp.org/news/the-top-data-structures-you-should-know-for-your-next-coding-interview-36af0831f5e3/"},
-        {"title": "Choosing the Right Data Structure", "url": "https://www.geeksforgeeks.org/data-structures/"}
-    ],
-    "loops": [
-        {"title": "Loop Optimization Techniques", "url": "https://www.geeksforgeeks.org/loop-optimization-in-c-cpp/"},
-        {"title": "Efficient Looping in Programming", "url": "https://levelup.gitconnected.com/how-to-refactor-for-loops-into-cleaner-code-8c0adc7af32d"}
-    ],
-    "caching": [
-        {"title": "Caching Strategies Explained", "url": "https://codeahoy.com/2017/08/11/caching-strategies-and-how-to-choose-the-right-one/"},
-        {"title": "Implementing Cache Systems", "url": "https://www.freecodecamp.org/news/what-is-cached-and-why-you-should-care-5e6aaead2302/"}
-    ],
-    "memoization": [
-        {"title": "Memoization in Dynamic Programming", "url": "https://www.geeksforgeeks.org/memoization-1d-2d-and-3d/"},
-        {"title": "Implementing Memoization", "url": "https://medium.com/@codingfreak/memoization-in-programming-with-python-be6aec0bc154"}
-    ],
-    "database": [
-        {"title": "Database Query Optimization", "url": "https://use-the-index-luke.com/"},
-        {"title": "Efficient SQL Queries", "url": "https://www.sisense.com/blog/8-ways-fine-tune-sql-queries-production-databases/"}
-    ],
-    "network": [
-        {"title": "Network Optimization Techniques", "url": "https://www.cloudflare.com/learning/network-layer/network-optimization/"},
-        {"title": "Efficient Network Design", "url": "https://www.cisco.com/c/en/us/support/docs/ip/routing-information-protocol-rip/13722-18.html"}
-    ],
-    "api calls": [
-        {"title": "Optimizing API Requests", "url": "https://www.moesif.com/blog/technical/api-guide/API-Rate-Limits-and-Burst-Allowance/"},
-        {"title": "RESTful API Best Practices", "url": "https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/"}
-    ],
-    "memory management": [
         {"title": "Memory Management Guide", "url": "https://www.codecademy.com/learn/cpp-memory-management"},
-        {"title": "Reducing Memory Leaks", "url": "https://www.baeldung.com/java-memory-leaks"}
-    ],
-    "optimized functions": [
-        {"title": "Writing Efficient Functions", "url": "https://effectivepython.com/"},
-        {"title": "Function Optimization Strategies", "url": "https://refactoring.guru/"}
-    ],
-    "parallelization": [
-        {"title": "Parallel Programming Guide", "url": "https://www.cs.cmu.edu/~15210/pasl.html"},
-        {"title": "Concurrency vs Parallelism", "url": "https://blog.golang.org/concurrency-is-not-parallelism"}
+        {"title": "Reducing Memory Leaks", "url": "https://www.baeldung.com/java-memory-leaks"},
+        {"title": "Optimizing Memory Usage", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management"},
+        {"title": "Memory Optimization", "url": "https://www.toptal.com/software/memory-optimization"},
+        {"title": "Efficient Memory Usage", "url": "https://www.educative.io/blog/code-efficiency"}
     ],
     "default": [
         {"title": "Performance Optimization Techniques", "url": "https://web.dev/fast/"},
         {"title": "Code Optimization Guide", "url": "https://www.geeksforgeeks.org/optimization-techniques-program-optimization/"},
-        {"title": "Algorithmic Efficiency", "url": "https://en.wikipedia.org/wiki/Algorithmic_efficiency"}
+        {"title": "Efficient Programming Practices", "url": "https://www.toptal.com/software/efficient-programming-practices"},
+        {"title": "Improving Code Efficiency", "url": "https://www.educative.io/blog/code-efficiency"},
+        {"title": "Best Practices for Performance", "url": "https://developer.mozilla.org/en-US/docs/Web/Performance"},
+        {"title": "Optimizing Loops", "url": "https://www.geeksforgeeks.org/loop-optimization-techniques/"}
     ]
 }
 
 # Function to get relevant resources based on concerns
 def get_efficiency_resources(concerns):
     resources = []
-    
-    # If no concerns, return general efficiency resources
-    if not concerns or len(concerns) == 0 or concerns[0] == "No efficiency concerns detected":
-        return random.sample(EFFICIENCY_RESOURCES["default"], 2)
-    
+
     # Extract keywords from concerns and match to resources
     keywords_found = []
     for concern in concerns:
-        # Ensure concern is a string
-        concern_str = str(concern) if concern is not None else ""
-        concern_lower = concern_str.lower()
-        
+        concern_lower = concern.lower()
         for keyword in EFFICIENCY_RESOURCES:
             if keyword in concern_lower and keyword not in keywords_found:
                 keywords_found.append(keyword)
-                resources.extend(random.sample(EFFICIENCY_RESOURCES[keyword], 1))
-                if len(resources) >= 3:
-                    return resources[:3]
-    
+                resources.extend(random.sample(EFFICIENCY_RESOURCES[keyword], min(3, len(EFFICIENCY_RESOURCES[keyword]))))
+
     # If not enough specific resources found, add some default ones
-    if not resources:
-        resources = random.sample(EFFICIENCY_RESOURCES["default"], 2)
-    elif len(resources) < 2:
-        additional = random.sample(EFFICIENCY_RESOURCES["default"], 2 - len(resources))
-        resources.extend(additional)
-    
-    return resources[:3]  # Return max 3 resources
+    if len(resources) < 3:
+        resources.extend(random.sample(EFFICIENCY_RESOURCES["default"], 3 - len(resources)))
+
+    return random.sample(resources, min(3, len(resources)))
 
 # Function to trim code to reduce token usage
 def trim_code_for_analysis(code, file_path):
@@ -339,4 +294,4 @@ result = fibonacci(30)
 print(result)
     """
     efficiency_analysis = evaluate_efficiency(sample_code)
-    print(f"Efficiency Analysis:\n{efficiency_analysis}") 
+    print(f"Efficiency Analysis:\n{efficiency_analysis}")

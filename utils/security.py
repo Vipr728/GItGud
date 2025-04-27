@@ -10,101 +10,52 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 load_dotenv()
 APIKEY = os.getenv("OPENAI_API_KEY")
 
-# Dictionary of security resources for common issues
+# Updated to randomly select 3 resources from a larger list
 SECURITY_RESOURCES = {
     "injection": [
         {"title": "OWASP SQL Injection Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"},
-        {"title": "Protecting from Injection Attacks", "url": "https://portswigger.net/web-security/sql-injection"}
+        {"title": "Protecting from Injection Attacks", "url": "https://portswigger.net/web-security/sql-injection"},
+        {"title": "SQL Injection Explained", "url": "https://www.geeksforgeeks.org/sql-injection/"},
+        {"title": "Preventing SQL Injection", "url": "https://www.acunetix.com/websitesecurity/sql-injection/"},
+        {"title": "SQL Injection Testing", "url": "https://owasp.org/www-community/attacks/SQL_Injection"},
+        {"title": "SQL Injection Cheat Sheet", "url": "https://portswigger.net/web-security/sql-injection/cheat-sheet"}
     ],
     "authentication": [
         {"title": "Authentication Best Practices", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html"},
-        {"title": "Multi-Factor Authentication Guide", "url": "https://auth0.com/blog/multifactor-authentication-mfa-a-comprehensive-guide/"}
-    ],
-    "authorization": [
-        {"title": "Authorization Best Practices", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html"},
-        {"title": "Role-Based Access Control", "url": "https://csrc.nist.gov/Projects/Role-Based-Access-Control"}
-    ],
-    "xss": [
-        {"title": "Cross-Site Scripting Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"},
-        {"title": "XSS Filter Evasion", "url": "https://owasp.org/www-community/xss-filter-evasion-cheatsheet"}
-    ],
-    "csrf": [
-        {"title": "Cross-Site Request Forgery Prevention", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html"},
-        {"title": "CSRF Explained with Examples", "url": "https://portswigger.net/web-security/csrf"}
-    ],
-    "sensitive data": [
-        {"title": "Sensitive Data Exposure", "url": "https://owasp.org/www-project-top-ten/2017/A3_2017-Sensitive_Data_Exposure"},
-        {"title": "Data Encryption Guide", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"}
-    ],
-    "encryption": [
-        {"title": "Encryption Best Practices", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html"},
-        {"title": "Symmetric vs Asymmetric Encryption", "url": "https://www.ssl2buy.com/wiki/symmetric-vs-asymmetric-encryption-what-are-differences"}
-    ],
-    "api security": [
-        {"title": "API Security Best Practices", "url": "https://github.com/shieldfy/API-Security-Checklist"},
-        {"title": "REST API Security", "url": "https://owasp.org/www-project-api-security/"}
-    ],
-    "secrets": [
-        {"title": "Secrets Management", "url": "https://www.hashicorp.com/resources/managing-secrets-in-a-post-quantum-world"},
-        {"title": "Secrets in Source Code", "url": "https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload"}
-    ],
-    "deserialization": [
-        {"title": "Deserialization Vulnerabilities", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html"},
-        {"title": "Preventing Insecure Deserialization", "url": "https://portswigger.net/web-security/deserialization"}
-    ],
-    "logging": [
-        {"title": "Logging Best Practices", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html"},
-        {"title": "Secure Logging Guidelines", "url": "https://www.owasp.org/index.php/Logging_Cheat_Sheet"}
-    ],
-    "input validation": [
-        {"title": "Input Validation", "url": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html"},
-        {"title": "Client-side vs Server-side Validation", "url": "https://www.sitepoint.com/client-side-vs-server-side-validation/"}
-    ],
-    "docker": [
-        {"title": "Docker Security", "url": "https://docs.docker.com/engine/security/"},
-        {"title": "Container Security Best Practices", "url": "https://snyk.io/blog/10-docker-image-security-best-practices/"}
-    ],
-    "buffer overflow": [
-        {"title": "Buffer Overflow Prevention", "url": "https://owasp.org/www-community/vulnerabilities/Buffer_Overflow"},
-        {"title": "Memory Safety in Programming", "url": "https://www.cs.cmu.edu/~jpolitz/blog/2020-06-25-memory-safety.html"}
+        {"title": "Multi-Factor Authentication Guide", "url": "https://auth0.com/blog/multifactor-authentication-mfa-a-comprehensive-guide/"},
+        {"title": "OAuth 2.0 Simplified", "url": "https://oauth.net/2/"},
+        {"title": "Secure Authentication Mechanisms", "url": "https://www.okta.com/identity-101/secure-authentication/"},
+        {"title": "Authentication Flaws", "url": "https://owasp.org/www-community/Authentication_Flaws"},
+        {"title": "Password Security", "url": "https://www.cisa.gov/uscert/ncas/tips/ST04-002"}
     ],
     "default": [
         {"title": "OWASP Top 10", "url": "https://owasp.org/www-project-top-ten/"},
         {"title": "Web Security Academy", "url": "https://portswigger.net/web-security"},
-        {"title": "Security Code Review Guide", "url": "https://owasp.org/www-pdf-archive/OWASP_Code_Review_Guide_v2.pdf"}
+        {"title": "Security Code Review Guide", "url": "https://owasp.org/www-pdf-archive/OWASP_Code_Review_Guide_v2.pdf"},
+        {"title": "Cybersecurity Best Practices", "url": "https://www.cisa.gov/cybersecurity-best-practices"},
+        {"title": "Secure Coding Practices", "url": "https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/"},
+        {"title": "Common Vulnerabilities", "url": "https://cwe.mitre.org/"}
     ]
 }
 
 # Function to get relevant resources based on concerns
 def get_security_resources(concerns):
     resources = []
-    
-    # If no concerns, return general security resources
-    if not concerns or len(concerns) == 0 or concerns[0] == "No security concerns detected":
-        return random.sample(SECURITY_RESOURCES["default"], 2)
-    
+
     # Extract keywords from concerns and match to resources
     keywords_found = []
     for concern in concerns:
-        # Ensure concern is a string
-        concern_str = str(concern) if concern is not None else ""
-        concern_lower = concern_str.lower()
-        
+        concern_lower = concern.lower()
         for keyword in SECURITY_RESOURCES:
             if keyword in concern_lower and keyword not in keywords_found:
                 keywords_found.append(keyword)
-                resources.extend(random.sample(SECURITY_RESOURCES[keyword], 1))
-                if len(resources) >= 3:
-                    return resources[:3]
-    
+                resources.extend(random.sample(SECURITY_RESOURCES[keyword], min(3, len(SECURITY_RESOURCES[keyword]))))
+
     # If not enough specific resources found, add some default ones
-    if not resources:
-        resources = random.sample(SECURITY_RESOURCES["default"], 2)
-    elif len(resources) < 2:
-        additional = random.sample(SECURITY_RESOURCES["default"], 2 - len(resources))
-        resources.extend(additional)
-    
-    return resources[:3]  # Return max 3 resources
+    if len(resources) < 3:
+        resources.extend(random.sample(SECURITY_RESOURCES["default"], 3 - len(resources)))
+
+    return random.sample(resources, min(3, len(resources)))
 
 # Function to trim code to reduce token usage
 def trim_code_for_analysis(code, file_path):

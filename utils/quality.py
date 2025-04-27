@@ -13,101 +13,52 @@ from openai import AsyncOpenAI
 load_dotenv()
 APIKEY = os.getenv("OPENAI_API_KEY")
 
-# Dictionary of quality resources for common issues
+# Updated to randomly select 3 resources from a larger list
 QUALITY_RESOURCES = {
     "naming": [
         {"title": "Clean Code: Naming Conventions", "url": "https://github.com/ryanmcdermott/clean-code-javascript#naming"},
-        {"title": "Naming Guide in Code", "url": "https://www.freecodecamp.org/news/coding-naming-conventions-best-practices/"}
+        {"title": "Naming Guide in Code", "url": "https://www.freecodecamp.org/news/coding-naming-conventions-best-practices/"},
+        {"title": "Effective Naming Strategies", "url": "https://www.baeldung.com/java-naming-conventions"},
+        {"title": "Best Practices for Naming", "url": "https://www.toptal.com/software/naming-conventions"},
+        {"title": "Variable Naming Tips", "url": "https://www.geeksforgeeks.org/variable-naming-conventions-in-programming/"},
+        {"title": "Naming Conventions in Python", "url": "https://peps.python.org/pep-0008/#naming-conventions"}
     ],
     "documentation": [
         {"title": "Writing Effective Documentation", "url": "https://documentation.divio.com/"},
-        {"title": "Google Developer Documentation Style Guide", "url": "https://developers.google.com/style"}
-    ],
-    "comment": [
-        {"title": "How to Write Comments", "url": "https://stackoverflow.blog/2021/12/23/best-practices-for-writing-code-comments/"},
-        {"title": "Code Comments Best Practices", "url": "https://medium.com/@ozanerhansha/on-writing-meaningful-code-comments-bf89fa7a0df1"}
-    ],
-    "test": [
-        {"title": "Test-Driven Development", "url": "https://martinfowler.com/bliki/TestDrivenDevelopment.html"},
-        {"title": "Writing Testable Code", "url": "https://www.toptal.com/qa/how-to-write-testable-code-and-why-it-matters"}
-    ],
-    "structure": [
-        {"title": "Clean Architecture", "url": "https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html"},
-        {"title": "Code Organization Patterns", "url": "https://refactoring.guru/design-patterns/structural-patterns"}
-    ],
-    "design pattern": [
-        {"title": "Design Patterns: Elements of Reusable Software", "url": "https://refactoring.guru/design-patterns"},
-        {"title": "Gang of Four Design Patterns", "url": "https://www.digitalocean.com/community/tutorials/gangs-of-four-gof-design-patterns"}
-    ],
-    "coupling": [
-        {"title": "Low Coupling, High Cohesion", "url": "https://enterprisecraftsmanship.com/posts/cohesion-coupling-difference/"},
-        {"title": "Managing Software Complexity", "url": "https://devchat.tv/blog/managing-software-complexity/"}
-    ],
-    "complexity": [
-        {"title": "Reducing Code Complexity", "url": "https://refactoring.guru/refactoring/techniques/simplifying-conditional-expressions"},
-        {"title": "Dealing with Complex Code", "url": "https://simpleprogrammer.com/dealing-legacy-code/"}
-    ],
-    "solid": [
-        {"title": "SOLID Principles", "url": "https://www.digitalocean.com/community/conceptual_articles/s-o-l-i-d-the-first-five-principles-of-object-oriented-design"},
-        {"title": "SOLID Examples", "url": "https://medium.com/backticks-tildes/the-s-o-l-i-d-principles-in-pictures-b34ce2f1e898"}
-    ],
-    "duplication": [
-        {"title": "DRY Principle", "url": "https://thevaluable.dev/dry-principle-cost-benefit-example/"},
-        {"title": "Removing Code Duplication", "url": "https://softwareengineering.stackexchange.com/questions/103233/how-to-remove-code-duplication"}
-    ],
-    "error handling": [
-        {"title": "Error Handling Best Practices", "url": "https://www.toptal.com/abap/clean-code-and-the-art-of-exception-handling"},
-        {"title": "Exception Handling Patterns", "url": "https://docs.microsoft.com/en-us/dotnet/standard/exceptions/best-practices-for-exceptions"}
-    ],
-    "style guide": [
-        {"title": "Google Style Guides", "url": "https://google.github.io/styleguide/"},
-        {"title": "Airbnb Style Guide", "url": "https://github.com/airbnb/javascript"}
-    ],
-    "code smells": [
-        {"title": "Identifying Code Smells", "url": "https://refactoring.guru/refactoring/smells"},
-        {"title": "Refactoring Techniques", "url": "https://refactoring.com/catalog/"}
-    ],
-    "readability": [
-        {"title": "Writing Readable Code", "url": "https://code.tutsplus.com/tutorials/top-15-best-practices-for-writing-super-readable-code--net-8118"},
-        {"title": "Code Readability Guidelines", "url": "https://medium.com/swlh/writing-readable-code-95473aef1fb3"}
+        {"title": "Google Developer Documentation Style Guide", "url": "https://developers.google.com/style"},
+        {"title": "Comprehensive Documentation Tips", "url": "https://www.writethedocs.org/guide/"},
+        {"title": "API Documentation Best Practices", "url": "https://swagger.io/resources/articles/documenting-apis/"},
+        {"title": "Technical Writing for Developers", "url": "https://developers.google.com/tech-writing"},
+        {"title": "Documentation for Open Source", "url": "https://opensource.guide/best-practices/"}
     ],
     "default": [
-        {"title": "Clean Code Handbook", "url": "https://github.com/ryanmcdermott/clean-code-javascript"},
-        {"title": "Pragmatic Programmer Tips", "url": "https://pragprog.com/tips/"},
-        {"title": "Code Quality Metrics", "url": "https://www.sonarqube.org/features/clean-code/"}
+        {"title": "Code Quality Metrics", "url": "https://www.sonarqube.org/features/clean-code/"},
+        {"title": "Improving Code Readability", "url": "https://medium.com/swlh/writing-readable-code-95473aef1fb3"},
+        {"title": "Refactoring for Quality", "url": "https://refactoring.guru/"},
+        {"title": "Best Practices for Clean Code", "url": "https://www.freecodecamp.org/news/clean-coding-for-beginners/"},
+        {"title": "Code Review Guidelines", "url": "https://google.github.io/eng-practices/review/"},
+        {"title": "Improving Code Maintainability", "url": "https://www.baeldung.com/java-code-maintainability"}
     ]
 }
 
 # Function to get relevant resources based on concerns
 def get_quality_resources(concerns):
     resources = []
-    
-    # If no concerns, return general quality resources
-    if not concerns or len(concerns) == 0 or concerns[0] == "No quality concerns detected":
-        return random.sample(QUALITY_RESOURCES["default"], 2)
-    
+
     # Extract keywords from concerns and match to resources
     keywords_found = []
     for concern in concerns:
-        # Ensure concern is a string
-        concern_str = str(concern) if concern is not None else ""
-        concern_lower = concern_str.lower()
-        
+        concern_lower = concern.lower()
         for keyword in QUALITY_RESOURCES:
             if keyword in concern_lower and keyword not in keywords_found:
                 keywords_found.append(keyword)
-                resources.extend(random.sample(QUALITY_RESOURCES[keyword], 1))
-                if len(resources) >= 3:
-                    return resources[:3]
-    
+                resources.extend(random.sample(QUALITY_RESOURCES[keyword], min(3, len(QUALITY_RESOURCES[keyword]))))
+
     # If not enough specific resources found, add some default ones
-    if not resources:
-        resources = random.sample(QUALITY_RESOURCES["default"], 2)
-    elif len(resources) < 2:
-        additional = random.sample(QUALITY_RESOURCES["default"], 2 - len(resources))
-        resources.extend(additional)
-    
-    return resources[:3]  # Return max 3 resources
+    if len(resources) < 3:
+        resources.extend(random.sample(QUALITY_RESOURCES["default"], 3 - len(resources)))
+
+    return random.sample(resources, min(3, len(resources)))
 
 # Function to trim code to reduce token usage
 def trim_code_for_analysis(code, file_path):
