@@ -836,10 +836,10 @@ def user_report(username):
             'username': username,
             'repos': results,
             'stats': {
-                'security': avg_security if avg_security != 'N/A' else 'N/A',
-                'efficiency': avg_efficiency if avg_efficiency != 'N/A' else 'N/A',
-                'quality': avg_quality if avg_quality != 'N/A' else 'N/A',
-                'overall': avg_overall if avg_overall != 'N/A' else 'N/A',
+                'security': round(avg_security,1) if avg_security != 'N/A' else 'N/A',
+                'efficiency': round(avg_efficiency,1) if avg_efficiency != 'N/A' else 'N/A',
+                'quality': round(avg_quality,1) if avg_quality != 'N/A' else 'N/A',
+                'overall': round(avg_overall,1) if avg_overall != 'N/A' else 'N/A',
                 'repo_count': len(results)
             }
         }
