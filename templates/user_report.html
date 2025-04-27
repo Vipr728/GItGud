@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Doctor Report for {{ report.username }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Light Theme Variables */
+            --primary-color: #6366F1;
+            --secondary-color: #4F46E5;
+            --background-color: #F9FAFB;
+            --container-bg: white;
+            --text-color: #1F2937;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #8B5CF6;
+            --card-bg: white;
+            --code-bg: #f1f5f9;
+            --badge-bg: #f8f9fa;
+            --gradient-bg: linear-gradient(to right, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+            --badge-preview-bg: white;
+            --badge-value-bg: var(--primary-color);
+            --overall-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            --badge-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --overall-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #818CF8;
+            --secondary-color: #6366F1;
+            --background-color: #111827;
+            --container-bg: #1F2937;
+            --text-color: #F9FAFB;
+            --border-color: #374151;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #A78BFA;
+            --card-bg: #374151;
+            --code-bg: #1E293B;
+            --badge-bg: #1E293B;
+            --gradient-bg: linear-gradient(to right, rgba(99, 102, 241, 0.2), rgba(167, 139, 250, 0.1));
+            --badge-preview-bg: #374151;
+            --badge-value-bg: var(--primary-color);
+            --overall-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            --badge-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --overall-shadow: 0 10px 15px -3px rgba(167, 139, 250, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: var(--container-bg);
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle label {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        .theme-toggle label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, #EC4899, #DB2777);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(to right, #4F46E5, #7C3AED);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .theme-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .username {
+            font-size: 1.25rem;
+            color: var(--accent-color);
+            font-weight: 500;
+        }
+
+        .repo-count {
+            font-size: 1rem;
+            color: #6B7280;
+            margin-top: 0.5rem;
+        }
+
+        .overall-score-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .overall-score-label {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .overall-score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            background: var(--overall-gradient);
+            margin-bottom: 1rem;
+            box-shadow: var(--overall-shadow);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .score-description {
+            font-size: 1.1rem;
+            text-align: center;
+            max-width: 600px;
+            color: var(--text-color);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .metric-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric-score {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-left: auto;
+        }
+
+        .score-high {
+            background-color: var(--success-color);
+        }
+
+        .score-medium {
+            background-color: var(--warning-color);
+        }
+
+        .score-low {
+            background-color: var(--error-color);
+        }
+
+        .score-na {
+            background-color: #94a3b8;
+        }
+
+        .metric-body {
+            padding: 1.5rem;
+        }
+
+        .concerns-list {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-subheading {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .concern-item {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+            border-left: 3px solid var(--border-color);
+            padding-left: 1rem;
+        }
+
+        .concern-text {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .concern-count {
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+
+        .resources-list {
+            list-style: none;
+        }
+
+        .resource-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .resource-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .resource-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .resource-link svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 0.5rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        .back-link::before {
+            content: '←';
+            margin-right: 0.5rem;
+        }
+
+        .badge-section {
+            margin-top: 3rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+        }
+
+        .badge-container {
+            background-color: var(--badge-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .badge-preview {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--badge-preview-bg);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: var(--badge-shadow);
+        }
+
+        .badge-label {
+            background-color: #555;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .badge-value {
+            background-color: var(--badge-value-bg);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge-value.high {
+            background-color: var(--success-color);
+        }
+
+        .badge-value.medium {
+            background-color: var(--warning-color);
+        }
+
+        .badge-value.low {
+            background-color: var(--error-color);
+        }
+
+        .code-block {
+            background-color: var(--code-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            font-family: monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .no-concerns {
+            color: var(--success-color);
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-toggle">
+        <span class="theme-icon">🌞</span>
+        <label>
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider"></span>
+        </label>
+        <span class="theme-icon">🌙</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>GitHub Doctor Report</h1>
+            <div class="username">{{ report.username }}</div>
+            <div class="repo-count">Analysis based on {{ report.repo_count }} repositories</div>
+        </header>
+        
+        <!-- Overall Score -->
+        <div class="overall-score-section">
+            <div class="overall-score-label">GitHub Doctor ELO</div>
+            
+            {% if report.overall == "N/A" %}
+                <div class="overall-score-circle score-na">N/A</div>
+            {% else %}
+                <div class="overall-score-circle">{{ report.overall }}</div>
+            {% endif %}
+            
+            <p class="score-description">
+                This score reflects the overall health of your GitHub repositories based on security, code efficiency, and code quality metrics.
+            </p>
+        </div>
+        
+        <!-- Individual Metrics -->
+        <div class="metrics-grid">
+            <!-- Security Metric -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">
+                        <span>Security</span>
+                        {% if report.security.score == "N/A" %}
+                            <span class="metric-score score-na">N/A</span>
+                        {% elif report.security.score >= 70 %}
+                            <span class="metric-score score-high">{{ report.security.score }}</span>
+                        {% elif report.security.score >= 40 %}
+                            <span class="metric-score score-medium">{{ report.security.score }}</span>
+                        {% else %}
+                            <span class="metric-score score-low">{{ report.security.score }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metric-body">
+                    <div class="concerns-list">
+                        <h3 class="section-subheading">Common Security Concerns</h3>
+                        {% if report.security.top_concerns %}
+                            {% for concern, count in report.security.top_concerns %}
+                                <div class="concern-item">
+                                    <div class="concern-text">{{ concern }}</div>
+                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-concerns">No security concerns detected</p>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="section-subheading">Recommended Resources</h3>
+                    <ul class="resources-list">
+                        {% for resource in report.security.resources %}
+                            <li class="resource-item">
+                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    {{ resource.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Efficiency Metric -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">
+                        <span>Efficiency</span>
+                        {% if report.efficiency.score == "N/A" %}
+                            <span class="metric-score score-na">N/A</span>
+                        {% elif report.efficiency.score >= 70 %}
+                            <span class="metric-score score-high">{{ report.efficiency.score }}</span>
+                        {% elif report.efficiency.score >= 40 %}
+                            <span class="metric-score score-medium">{{ report.efficiency.score }}</span>
+                        {% else %}
+                            <span class="metric-score score-low">{{ report.efficiency.score }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metric-body">
+                    <div class="concerns-list">
+                        <h3 class="section-subheading">Common Efficiency Concerns</h3>
+                        {% if report.efficiency.top_concerns %}
+                            {% for concern, count in report.efficiency.top_concerns %}
+                                <div class="concern-item">
+                                    <div class="concern-text">{{ concern }}</div>
+                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-concerns">No efficiency concerns detected</p>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="section-subheading">Recommended Resources</h3>
+                    <ul class="resources-list">
+                        {% for resource in report.efficiency.resources %}
+                            <li class="resource-item">
+                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    {{ resource.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Code Quality Metric -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-title">
+                        <span>Code Quality</span>
+                        {% if report.quality.score == "N/A" %}
+                            <span class="metric-score score-na">N/A</span>
+                        {% elif report.quality.score >= 70 %}
+                            <span class="metric-score score-high">{{ report.quality.score }}</span>
+                        {% elif report.quality.score >= 40 %}
+                            <span class="metric-score score-medium">{{ report.quality.score }}</span>
+                        {% else %}
+                            <span class="metric-score score-low">{{ report.quality.score }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="metric-body">
+                    <div class="concerns-list">
+                        <h3 class="section-subheading">Common Quality Concerns</h3>
+                        {% if report.quality.top_concerns %}
+                            {% for concern, count in report.quality.top_concerns %}
+                                <div class="concern-item">
+                                    <div class="concern-text">{{ concern }}</div>
+                                    <div class="concern-count">Found {{ count }} time{% if count > 1 %}s{% endif %}</div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="no-concerns">No code quality concerns detected</p>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="section-subheading">Recommended Resources</h3>
+                    <ul class="resources-list">
+                        {% for resource in report.quality.resources %}
+                            <li class="resource-item">
+                                <a href="{{ resource.url }}" target="_blank" class="resource-link">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                    {{ resource.title }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- README Badge Section -->
+        <div class="badge-section">
+            <h2 class="section-subheading">GitHub README Badge</h2>
+            <p>Show off your GitHub Doctor score on your profile:</p>
+            
+            <div class="badge-container">
+                <div class="badge-preview">
+                    <!-- Overall Score Badge -->
+                    <div class="badge">
+                        <span class="badge-label">GitHub Doctor Score</span>
+                        {% if badge.overall != 'N/A' %}
+                            {% if badge.overall >= 70 %}
+                                <span class="badge-value high">{{ badge.overall }}</span>
+                            {% elif badge.overall >= 40 %}
+                                <span class="badge-value medium">{{ badge.overall }}</span>
+                            {% else %}
+                                <span class="badge-value low">{{ badge.overall }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge-value">N/A</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="markdown-container">
+                    <h3 class="section-subheading">Markdown Code</h3>
+                    <p>Copy and paste this into your GitHub README.md:</p>
+                    
+                    <div class="code-block" id="markdown-code">
+[![GitHub Doctor Score](https://img.shields.io/badge/GitHub_Doctor_Score-{{ badge.overall if badge.overall != 'N/A' else 'N%2FA' }}-{% if badge.overall != 'N/A' %}{% if badge.overall >= 70 %}success{% elif badge.overall >= 40 %}yellow{% else %}critical{% endif %}{% else %}lightgrey{% endif %})](http://127.0.0.1:5000/user-report/{{ badge.username }})
+
+**Security:** {{ badge.security if badge.security != 'N/A' else 'N/A' }} | **Efficiency:** {{ badge.efficiency if badge.efficiency != 'N/A' else 'N/A' }} | **Quality:** {{ badge.quality if badge.quality != 'N/A' else 'N/A' }}
+                    </div>
+                    
+                    <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+        
+        <a href="/?username={{ report.username }}" class="back-link">Back to Repository Analysis</a>
+    </div>
+    
+    <script>
+        function copyToClipboard() {
+            const codeBlock = document.getElementById('markdown-code');
+            const textArea = document.createElement('textarea');
+            textArea.value = codeBlock.textContent.trim();
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = originalText;
+            }, 2000);
+        }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use device preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+        } else {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+            }
+        }
+        
+        // Toggle theme on switch change
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +7,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --background-color: #f8fafc;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
+            /* Light Theme Variables */
+            --primary-color: #6366F1;
+            --secondary-color: #4F46E5;
+            --background-color: #F9FAFB;
+            --container-bg: white;
+            --text-color: #1F2937;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #8B5CF6;
+            --card-bg: white;
+            --gradient-bg: linear-gradient(to right, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #818CF8;
+            --secondary-color: #6366F1;
+            --background-color: #111827;
+            --container-bg: #1F2937;
+            --text-color: #F9FAFB;
+            --border-color: #374151;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #A78BFA;
+            --card-bg: #374151;
+            --gradient-bg: linear-gradient(to right, rgba(99, 102, 241, 0.2), rgba(167, 139, 250, 0.1));
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --card-hover-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
         }
 
         * {
@@ -29,15 +53,84 @@
             color: var(--text-color);
             line-height: 1.6;
             padding: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 2rem;
-            background: white;
+            background: var(--container-bg);
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: var(--container-bg);
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle label {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        .theme-toggle label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, #EC4899, #DB2777);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(to right, #4F46E5, #7C3AED);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .theme-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
         }
 
         h1 {
@@ -49,11 +142,12 @@
         }
 
         .form-container {
-            background: white;
+            background: var(--gradient-bg);
             padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             margin-bottom: 2rem;
+            transition: background 0.3s ease;
         }
 
         .form-group {
@@ -73,7 +167,9 @@
             border: 2px solid var(--border-color);
             border-radius: 6px;
             font-size: 1rem;
-            transition: border-color 0.2s;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s, background-color 0.3s, color 0.3s;
         }
 
         input[type="text"]:focus {
@@ -105,18 +201,18 @@
         }
 
         .repo-card {
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 1.5rem;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
             cursor: pointer;
             position: relative;
         }
 
         .repo-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-hover-shadow);
         }
 
         .repo-card::after {
@@ -141,11 +237,12 @@
         }
 
         .language-tag {
-            background-color: #f3f4f6;
+            background-color: var(--border-color);
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
+            transition: background-color 0.3s;
         }
 
         .repo-card h3 {
@@ -186,7 +283,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(17, 24, 39, 0.8);
             z-index: 1000;
             text-align: center;
             padding-top: 20%;
@@ -221,6 +318,12 @@
             button {
                 width: 100%;
             }
+            
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
         }
 
         #loading p {
@@ -230,42 +333,57 @@
         .loading-status {
             margin-top: 1rem;
             font-size: 1rem;
-            color: var(--text-color);
+            color: white;
         }
 
         .error-message {
-            background-color: #fee2e2;
+            background-color: rgba(239, 68, 68, 0.1);
             border: 1px solid var(--error-color);
-            color: #b91c1c;
+            color: var(--error-color);
             padding: 1rem;
             border-radius: 6px;
             margin-bottom: 1.5rem;
             text-align: center;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .actions-container {
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
         }
 
-        .badge-link {
+        .report-button {
             display: inline-block;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
             text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.2s;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.3s;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.25);
         }
 
-        .badge-link:hover {
-            background-color: var(--secondary-color);
+        .report-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, var(--secondary-color) 0%, var(--accent-color) 100%);
         }
     </style>
 </head>
 <body>
+    <div class="theme-toggle">
+        <span class="theme-icon">🌞</span>
+        <label>
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider"></span>
+        </label>
+        <span class="theme-icon">🌙</span>
+    </div>
+
     <div id="loading">
         <div class="loading-spinner"></div>
         <p>Analyzing repositories...</p>
@@ -294,7 +412,7 @@
 
         {% if results %}
             <div class="actions-container">
-                <a href="/readme-badge/{{ username }}" class="badge-link">Generate GitHub README Badge</a>
+                <a href="/user-report/{{ username }}" class="report-button">Get My GitHub Report</a>
             </div>
 
             <div class="repo-grid">
@@ -359,6 +477,34 @@
         function showLoading() {
             document.getElementById('loading').style.display = 'block';
         }
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use device preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+        } else {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+            }
+        }
+        
+        // Toggle theme on switch change
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
     </script>
 </body>
 </html>

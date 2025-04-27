@@ -182,7 +182,7 @@ def analyze_repo(username, repo):
         # Sample files: collect up to 5 files of each supported type
         sample_files = []
         directories = []
-        file_extensions = (".py", ".js", ".java", ".cpp", ".c", ".ts", ".dart", ".swift", ".kt", ".html", ".css", ".m", ".h")
+        file_extensions = (".py", ".js", ".java", ".cpp", ".c", ".ts", ".dart", ".swift", ".kt", ".html", ".css", ".m", ".h", ".cs")
         
         # Files per extension counter
         extension_counts = {ext: 0 for ext in file_extensions}
@@ -604,6 +604,124 @@ def generate_readme_badge(username):
         
     except Exception as e:
         return render_template('error.html', error=f"Error generating README badge: {str(e)}")
+
+@app.route('/user-report/<username>')
+def user_report(username):
+    """Generate a comprehensive GitHub report with stats, common errors, and recommendations"""
+    try:
+        # Check if user is in cache
+        if username not in user_cache:
+            return render_template('error.html', error=f"User {username} not found. Please analyze their repositories first.")
+        
+        results = user_cache[username]
+        
+        # Calculate average scores across all repositories
+        security_scores = []
+        efficiency_scores = []
+        quality_scores = []
+        overall_scores = []
+        
+        # Collect all concerns for analysis
+        all_security_concerns = []
+        all_efficiency_concerns = []
+        all_quality_concerns = []
+        
+        for repo in results:
+            try:
+                # Collect scores
+                if repo['security']['score'] not in ['N/A', 'Error']:
+                    security_scores.append(float(repo['security']['score']))
+                if repo['efficiency']['score'] not in ['N/A', 'Error']:
+                    efficiency_scores.append(float(repo['efficiency']['score']))
+                if repo['quality']['score'] not in ['N/A', 'Error']:
+                    quality_scores.append(float(repo['quality']['score']))
+                if repo.get('overall_score') not in ['N/A', 'Error']:
+                    overall_scores.append(float(repo['overall_score']))
+                
+                # Collect concerns
+                all_security_concerns.extend(repo['security'].get('concerns', []))
+                all_efficiency_concerns.extend(repo['efficiency'].get('concerns', []))
+                all_quality_concerns.extend(repo['quality'].get('concerns', []))
+            except (ValueError, KeyError):
+                pass
+        
+        # Calculate averages
+        avg_security = sum(security_scores) / len(security_scores) if security_scores else 'N/A'
+        avg_efficiency = sum(efficiency_scores) / len(efficiency_scores) if efficiency_scores else 'N/A'
+        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 'N/A'
+        avg_overall = sum(overall_scores) / len(overall_scores) if overall_scores else 'N/A'
+        
+        # Filter out "No concerns detected" messages
+        all_security_concerns = [concern for concern in all_security_concerns if not "No security concerns detected" in concern]
+        all_efficiency_concerns = [concern for concern in all_efficiency_concerns if not "No efficiency concerns detected" in concern]
+        all_quality_concerns = [concern for concern in all_quality_concerns if not "No quality concerns detected" in concern]
+        
+        # Get frequency of each concern
+        from collections import Counter
+        
+        security_counter = Counter(all_security_concerns)
+        efficiency_counter = Counter(all_efficiency_concerns)
+        quality_counter = Counter(all_quality_concerns)
+        
+        # Get top 5 most common concerns
+        top_security_concerns = security_counter.most_common(5)
+        top_efficiency_concerns = efficiency_counter.most_common(5)
+        top_quality_concerns = quality_counter.most_common(5)
+        
+        # Define help resources
+        security_resources = [
+            {"title": "OWASP Top Ten", "url": "https://owasp.org/www-project-top-ten/"},
+            {"title": "Web Security Academy", "url": "https://portswigger.net/web-security"},
+            {"title": "Security Best Practices", "url": "https://cheatsheetseries.owasp.org/"}
+        ]
+        
+        efficiency_resources = [
+            {"title": "Performance Best Practices", "url": "https://web.dev/performance-optimizing-content-efficiency/"},
+            {"title": "Algorithmic Complexity Guide", "url": "https://www.bigocheatsheet.com/"},
+            {"title": "Code Optimization Techniques", "url": "https://github.com/donnemartin/system-design-primer"}
+        ]
+        
+        quality_resources = [
+            {"title": "Clean Code Principles", "url": "https://github.com/ryanmcdermott/clean-code-javascript"},
+            {"title": "Code Review Best Practices", "url": "https://google.github.io/eng-practices/review/"},
+            {"title": "Refactoring Techniques", "url": "https://refactoring.com/catalog/"}
+        ]
+        
+        # Prepare data for the template
+        report_data = {
+            'username': username,
+            'security': {
+                'score': round(avg_security) if avg_security != 'N/A' else 'N/A',
+                'top_concerns': top_security_concerns,
+                'resources': security_resources
+            },
+            'efficiency': {
+                'score': round(avg_efficiency) if avg_efficiency != 'N/A' else 'N/A',
+                'top_concerns': top_efficiency_concerns,
+                'resources': efficiency_resources
+            },
+            'quality': {
+                'score': round(avg_quality) if avg_quality != 'N/A' else 'N/A',
+                'top_concerns': top_quality_concerns,
+                'resources': quality_resources
+            },
+            'overall': round(avg_overall) if avg_overall != 'N/A' else 'N/A',
+            'repo_count': len(results)
+        }
+        
+        # Prepare badge data for README markdown
+        badge_data = {
+            'username': username,
+            'security': round(avg_security) if avg_security != 'N/A' else 'N/A',
+            'efficiency': round(avg_efficiency) if avg_efficiency != 'N/A' else 'N/A',
+            'quality': round(avg_quality) if avg_quality != 'N/A' else 'N/A',
+            'overall': round(avg_overall) if avg_overall != 'N/A' else 'N/A',
+        }
+        
+        return render_template('user_report.html', report=report_data, badge=badge_data)
+        
+    except Exception as e:
+        return render_template('error.html', error=f"Error generating user report: {str(e)}")
 
 # Ensure non-Flask logic is executed only when not running the Flask app
 if __name__ == "__main__":

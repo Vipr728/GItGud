@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,14 +7,40 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --background-color: #f8fafc;
-            --text-color: #1e293b;
-            --border-color: #e2e8f0;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
+            /* Light Theme Variables */
+            --primary-color: #6366F1;
+            --secondary-color: #4F46E5;
+            --background-color: #F9FAFB;
+            --container-bg: white;
+            --text-color: #1F2937;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #8B5CF6;
+            --card-bg: white;
+            --meta-color: #64748b;
+            --gradient-bg: linear-gradient(to right, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --language-tag-bg: #f3f4f6;
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #818CF8;
+            --secondary-color: #6366F1;
+            --background-color: #111827;
+            --container-bg: #1F2937;
+            --text-color: #F9FAFB;
+            --border-color: #374151;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+            --error-color: #EF4444;
+            --accent-color: #A78BFA;
+            --card-bg: #374151;
+            --meta-color: #9CA3AF;
+            --gradient-bg: linear-gradient(to right, rgba(99, 102, 241, 0.2), rgba(167, 139, 250, 0.1));
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --language-tag-bg: #4B5563;
         }
 
         * {
@@ -29,15 +55,84 @@
             color: var(--text-color);
             line-height: 1.6;
             padding: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
             max-width: 1000px;
             margin: 0 auto;
             padding: 2rem;
-            background: white;
+            background: var(--container-bg);
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: var(--container-bg);
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle label {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+            margin-left: 10px;
+        }
+
+        .theme-toggle label input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, #EC4899, #DB2777);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(to right, #4F46E5, #7C3AED);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .theme-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
         }
 
         h1 {
@@ -49,7 +144,7 @@
 
         .repo-meta {
             margin-bottom: 2rem;
-            color: #64748b;
+            color: var(--meta-color);
         }
 
         .repo-link {
@@ -158,11 +253,12 @@
         }
 
         .language-tag {
-            background-color: #f3f4f6;
+            background-color: var(--language-tag-bg);
             padding: 0.25rem 0.5rem;
             border-radius: 4px;
             font-size: 0.75rem;
             font-weight: 500;
+            transition: background-color 0.3s;
         }
 
         .no-concerns {
@@ -173,6 +269,10 @@
         .overall-score-section {
             margin-bottom: 2.5rem;
             text-align: center;
+            background: var(--gradient-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            transition: background 0.3s ease;
         }
 
         .overall-score-circle {
@@ -186,6 +286,20 @@
             font-weight: 600;
             color: white;
             margin: 0 auto 1rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            transition: background 0.3s ease;
+        }
+        
+        .overall-score-circle.score-high {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+        }
+        
+        .overall-score-circle.score-medium {
+            background: linear-gradient(135deg, var(--warning-color) 0%, #D97706 100%);
+        }
+        
+        .overall-score-circle.score-low {
+            background: linear-gradient(135deg, var(--error-color) 0%, #DC2626 100%);
         }
 
         .overall-score-label {
@@ -208,10 +322,25 @@
                 margin-bottom: 1rem;
                 margin-right: 0;
             }
+            
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="theme-toggle">
+        <span class="theme-icon">🌞</span>
+        <label>
+            <input type="checkbox" id="theme-toggle">
+            <span class="slider"></span>
+        </label>
+        <span class="theme-icon">🌙</span>
+    </div>
+
     <div class="container">
         <a href="/?username={{ username }}" class="back-link">Back to all repositories</a>
         
@@ -350,5 +479,35 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use device preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            htmlElement.setAttribute('data-theme', savedTheme);
+            themeToggle.checked = savedTheme === 'dark';
+        } else {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                themeToggle.checked = true;
+            }
+        }
+        
+        // Toggle theme on switch change
+        themeToggle.addEventListener('change', function() {
+            if (this.checked) {
+                htmlElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                htmlElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
 </body>
 </html> 

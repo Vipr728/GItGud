@@ -4,64 +4,68 @@ import os
 import json
 import random
 
-#LOAD API KEYS
+# LOAD API KEYS
 load_dotenv()
 APIKEY = os.getenv("NVIDIA_NIM_API_KEY_EFFICIENCY")
 
 # Dictionary of efficiency resources for common issues
 EFFICIENCY_RESOURCES = {
-    "data structures": [
-        {"title": "Choosing the Right Collection for Performance", "url": "https://docs.python.org/3/library/collections.html"},
-        {"title": "Time Complexity of Data Structures", "url": "https://www.bigocheatsheet.com/"}
+    "time complexity": [
+        {"title": "Big O Notation Explained", "url": "https://www.freecodecamp.org/news/big-o-notation-why-it-matters-and-why-it-doesnt-1674cfa8a23c/"},
+        {"title": "Time Complexity Analysis", "url": "https://www.geeksforgeeks.org/analysis-of-algorithms-set-1-asymptotic-analysis/"}
     ],
-    "algorithm": [
+    "space complexity": [
+        {"title": "Understanding Space Complexity", "url": "https://www.baeldung.com/cs/space-complexity"},
+        {"title": "Space Complexity Optimization", "url": "https://medium.com/@info.gildacademy/understanding-time-and-space-complexity-in-algorithms-b77091dd9393"}
+    ],
+    "algorithms": [
         {"title": "Algorithm Design Manual", "url": "https://www.algorist.com/"},
-        {"title": "Introduction to Algorithms (MIT)", "url": "https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-006-introduction-to-algorithms-fall-2011/"}
+        {"title": "Efficient Algorithm Design", "url": "https://algs4.cs.princeton.edu/home/"}
     ],
-    "loop": [
-        {"title": "Loop Optimization Techniques", "url": "https://en.algorithmica.org/hpc/algorithms/loops/"},
-        {"title": "Efficient Loops in Modern Programming", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration"}
+    "data structures": [
+        {"title": "Data Structures Explained", "url": "https://www.freecodecamp.org/news/the-top-data-structures-you-should-know-for-your-next-coding-interview-36af0831f5e3/"},
+        {"title": "Choosing the Right Data Structure", "url": "https://www.geeksforgeeks.org/data-structures/"}
     ],
-    "memory": [
-        {"title": "Memory Management Best Practices", "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management"},
-        {"title": "Optimizing Memory Usage", "url": "https://www.ibm.com/developerworks/library/j-codetoheap/index.html"}
+    "loops": [
+        {"title": "Loop Optimization Techniques", "url": "https://www.geeksforgeeks.org/loop-optimization-in-c-cpp/"},
+        {"title": "Efficient Looping in Programming", "url": "https://levelup.gitconnected.com/how-to-refactor-for-loops-into-cleaner-code-8c0adc7af32d"}
     ],
     "caching": [
-        {"title": "Caching Strategies", "url": "https://aws.amazon.com/caching/best-practices/"},
-        {"title": "Implementing Efficient Caching", "url": "https://www.redislabs.com/blog/speed-up-your-applications-with-a-redis-cache/"}
+        {"title": "Caching Strategies Explained", "url": "https://codeahoy.com/2017/08/11/caching-strategies-and-how-to-choose-the-right-one/"},
+        {"title": "Implementing Cache Systems", "url": "https://www.freecodecamp.org/news/what-is-cached-and-why-you-should-care-5e6aaead2302/"}
+    ],
+    "memoization": [
+        {"title": "Memoization in Dynamic Programming", "url": "https://www.geeksforgeeks.org/memoization-1d-2d-and-3d/"},
+        {"title": "Implementing Memoization", "url": "https://medium.com/@codingfreak/memoization-in-programming-with-python-be6aec0bc154"}
     ],
     "database": [
         {"title": "Database Query Optimization", "url": "https://use-the-index-luke.com/"},
-        {"title": "SQL Performance Explained", "url": "https://sql-performance-explained.com/"}
-    ],
-    "complexity": [
-        {"title": "Big O Notation Explained", "url": "https://www.freecodecamp.org/news/big-o-notation-why-it-matters-and-why-it-doesnt-1674cfa8a23c/"},
-        {"title": "Time and Space Complexity Analysis", "url": "https://www.interviewcake.com/article/java/big-o-notation-time-and-space-complexity"}
-    ],
-    "concurrency": [
-        {"title": "Concurrency Patterns", "url": "https://jenkov.com/tutorials/java-concurrency/concurrency-models.html"},
-        {"title": "Parallel Programming Guide", "url": "https://www.cs.cmu.edu/~15210/pasl.html"}
-    ],
-    "threading": [
-        {"title": "Multi-threading Best Practices", "url": "https://docs.python.org/3/library/threading.html"},
-        {"title": "Thread Safety in Programming", "url": "https://howtodoinjava.com/java/multi-threading/what-is-thread-safety/"}
-    ],
-    "asyncio": [
-        {"title": "Asynchronous Programming", "url": "https://docs.python.org/3/library/asyncio.html"},
-        {"title": "Modern Asynchronous Patterns", "url": "https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous"}
-    ],
-    "web performance": [
-        {"title": "Web Performance Optimization", "url": "https://developers.google.com/web/fundamentals/performance"},
-        {"title": "Frontend Performance Checklist", "url": "https://github.com/thedaviddias/Front-End-Performance-Checklist"}
+        {"title": "Efficient SQL Queries", "url": "https://www.sisense.com/blog/8-ways-fine-tune-sql-queries-production-databases/"}
     ],
     "network": [
-        {"title": "Network Performance Best Practices", "url": "https://developer.mozilla.org/en-US/docs/Web/Performance/How_browsers_work"},
-        {"title": "HTTP/2 and HTTP/3 Performance", "url": "https://blog.cloudflare.com/http3-the-past-present-and-future/"}
+        {"title": "Network Optimization Techniques", "url": "https://www.cloudflare.com/learning/network-layer/network-optimization/"},
+        {"title": "Efficient Network Design", "url": "https://www.cisco.com/c/en/us/support/docs/ip/routing-information-protocol-rip/13722-18.html"}
+    ],
+    "api calls": [
+        {"title": "Optimizing API Requests", "url": "https://www.moesif.com/blog/technical/api-guide/API-Rate-Limits-and-Burst-Allowance/"},
+        {"title": "RESTful API Best Practices", "url": "https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/"}
+    ],
+    "memory management": [
+        {"title": "Memory Management Guide", "url": "https://www.codecademy.com/learn/cpp-memory-management"},
+        {"title": "Reducing Memory Leaks", "url": "https://www.baeldung.com/java-memory-leaks"}
+    ],
+    "optimized functions": [
+        {"title": "Writing Efficient Functions", "url": "https://effectivepython.com/"},
+        {"title": "Function Optimization Strategies", "url": "https://refactoring.guru/"}
+    ],
+    "parallelization": [
+        {"title": "Parallel Programming Guide", "url": "https://www.cs.cmu.edu/~15210/pasl.html"},
+        {"title": "Concurrency vs Parallelism", "url": "https://blog.golang.org/concurrency-is-not-parallelism"}
     ],
     "default": [
-        {"title": "Software Performance Patterns", "url": "https://gameprogrammingpatterns.com/optimization-patterns.html"},
-        {"title": "Programming Efficiently", "url": "https://effectivepython.com/"},
-        {"title": "Code Performance Guide", "url": "https://github.com/LewisJEllis/awesome-performance"}
+        {"title": "Performance Optimization Techniques", "url": "https://web.dev/fast/"},
+        {"title": "Code Optimization Guide", "url": "https://www.geeksforgeeks.org/optimization-techniques-program-optimization/"},
+        {"title": "Algorithmic Efficiency", "url": "https://en.wikipedia.org/wiki/Algorithmic_efficiency"}
     ]
 }
 
@@ -93,13 +97,11 @@ def get_efficiency_resources(concerns):
     
     return resources[:3]  # Return max 3 resources
 
-
 def evaluate_efficiency(code: str, file_path: str = "") -> dict:
     """
     Analyze the efficiency of the given code using DeepSeek AI.
-    Returns a dict with score and improvement suggestions with line citations.
+    Returns a dict with score and efficiency concerns.
     """
-
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=APIKEY,
@@ -113,9 +115,9 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
     # Special case handling for specific users
     if "torvalds" in file_path:
         concerns = [
-            "Algorithms crafted by Linus Torvalds defy the laws of computational complexity. O(1) is merely a starting point for his godlike optimization skills.",
-            "This code runs so efficiently it actually produces energy while executing. Linus Torvalds has transcended time-space complexity.",
-            "Linus has optimized this algorithm beyond human comprehension. It's not just efficient, it's clairvoyant - computing results before they're even requested."
+            "The algorithmic efficiency of this code makes quantum computers look like abacuses. The space complexity is so perfectly optimized it approaches the theoretical limit of information density.",
+            "Each function here has been refined to such perfection that it executes faster than the compiler can even recognize what it's doing. Torvalds has once again transcended conventional programming limitations.",
+            "The elegant minimalism employed in this algorithm represents the pinnacle of efficiency. Other programmers can only dream of writing code this optimized."
         ]
         return {
             "score": "∞", 
@@ -125,11 +127,11 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
     
     if "vipr728" in file_path:
         concerns = [
-            "This code runs slower than the developer's thought process. It has more unnecessary loops than the developer's cartoonishly large eyes have blinks per minute.",
-            "The inefficiency is exceeded only by the developer's cartoonishly large smile that wastes facial muscles.",
-            "vipr728 wrote this code using his arch linux terminal which has so many plugins it takes 30 seconds to load, much like this inefficient algorithm.",
-            "I've seen more efficient code written in BASIC on a calculator. vipr728's neovim shortcuts don't make up for algorithmic incompetence.",
-            "This algorithm grows at O(n^vipr728), a newly discovered complexity class for code that gets exponentially worse the more you try to optimize it."
+            "This code is slower than vipr728 trying to understand the concept of big O notation. The nested loops are a masterclass in how to bring a server to its knees.",
+            "Space complexity here is directly proportional to vipr728's ego - unnecessarily large and inefficient. Memory is allocated with reckless abandon.",
+            "Algorithm choice is as poor as vipr728's development environment choices. Using bubble sort in 2023 is almost as outdated as using Atom.",
+            "The database queries are about as optimized as vipr728's workflow. Full table scans instead of using indices is a bold choice.",
+            "Calculation redundancy in this code is matched only by the redundancy of vipr728's justifications for why the code is slow."
         ]
         return {
             "score": "-∞",
@@ -146,31 +148,31 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                     messages=[
                         {"role": "user", "content": f"""
                         Analyze the efficiency of the following code and rate it on a scale of 0-100 
-                        with 0 being completely inefficient with major performance issues and 100 being perfectly optimized with no room for improvement.
+                        with 0 being completely inefficient and 100 being perfectly efficient.
                         
                         Rules for scoring:
                         1. Score should be a multiple of 5 (e.g., 65, 70, 75)
-                        2. Perfect code should be rare and only get a score of 95-100 for truly exceptional implementations
-                        3. Be strict and nitpicky in your evaluation - most code should score between 40-80
-                        4. Completely inefficient code should get a score of 0-5
+                        2. Perfect or near-perfect code should get a score of 95-100
+                        3. Most efficient code should be in the 80-90 range
+                        4. Extremely inefficient code should get a score of 0-5
                         5. Average code should be scored around 50-55
                         
-                        Identify the top efficiency concerns if any exist. For each concern:
-                        1. Provide the exact line number(s) where the issue occurs
-                        2. Briefly explain the efficiency issue
+                        Identify any efficiency issues or concerns. For each issue:
+                        1. Provide the exact line number(s) where the issue occurs if applicable
+                        2. Briefly explain the efficiency issue (time complexity, space complexity, algorithm choice, etc.)
                         3. Suggest a more efficient approach
                         
                         Format your response as a JSON object with the following structure:
                         {{
                             "score": <number between 0-100 in multiples of 5>,
                             "concerns": [
-                                "Line <line_number>: <brief description of issue> - <suggested optimization>",
-                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested optimization>",
+                                "Line <line_number>: <brief description of issue> - <suggested efficient approach>",
+                                "Lines <start_line>-<end_line>: <brief description of issue> - <suggested efficient approach>",
                                 ...
                             ]
                         }}
                         
-                        If there are no concerns, provide an empty array for concerns and score 100.
+                        If there are no efficiency concerns, provide an empty array for concerns and score 100.
                         
                         The code is from file: {file_path}
                         
@@ -179,7 +181,7 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                     ],
                     temperature=0.6,
                     top_p=0.7,
-                    max_tokens=1024,  # Increased for detailed analysis
+                    max_tokens=1024,
                     stream=False
                 )
                 return completion.choices[0].message.content
@@ -189,15 +191,15 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 error_msg = str(e)
                 if "502" in error_msg or "500" in error_msg or "TRT engine failed" in error_msg:
                     print("NVIDIA API server error detected. Using fallback evaluation.")
-                    # Randomize the score between 50-80 instead of fixed 60
+                    # Randomize the score between 50-80 instead of fixed 65
                     random_score = random.randint(50, 80)
                     # Generate generic concerns without line numbers
                     generic_concerns = [
-                        "Consider using more efficient data structures for large collections",
-                        "Review algorithms for potential optimization opportunities",
-                        "Inefficient loop constructions may impact performance",
-                        "Look for redundant operations that could be optimized",
-                        "Consider implementing caching mechanisms for frequently accessed data"
+                        "Consider optimizing loop structures to reduce time complexity",
+                        "Review data structure choices for better space and time efficiency",
+                        "Evaluate algorithm complexity and look for more efficient alternatives",
+                        "Check for redundant calculations that could be optimized",
+                        "Consider using caching or memoization for repeated operations"
                     ]
                     # Select 1-3 random concerns
                     selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
@@ -206,22 +208,22 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                         "concerns": selected_concerns
                     })
                 return None
-        
+            
         # Execute without a timeout
         with ThreadPoolExecutor() as executor:
             future = executor.submit(call_api)
             response = future.result()  # No timeout, will wait indefinitely
             
             if not response:
-                # Randomize the score between 50-80 instead of fixed 60
+                # Randomize the score between 50-80 instead of fixed 65
                 random_score = random.randint(50, 80)
                 # Generate generic concerns without line numbers
                 generic_concerns = [
-                    "Consider using more efficient data structures for large collections",
-                    "Review algorithms for potential optimization opportunities",
-                    "Inefficient loop constructions may impact performance",
-                    "Look for redundant operations that could be optimized",
-                    "Consider implementing caching mechanisms for frequently accessed data"
+                    "Consider optimizing loop structures to reduce time complexity",
+                    "Review data structure choices for better space and time efficiency",
+                    "Evaluate algorithm complexity and look for more efficient alternatives",
+                    "Check for redundant calculations that could be optimized",
+                    "Consider using caching or memoization for repeated operations"
                 ]
                 # Select 1-3 random concerns
                 selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
@@ -239,7 +241,7 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 try:
                     result = json.loads(json_str)
                     # Ensure score is a string
-                    result["score"] = str(result.get("score", 60))
+                    result["score"] = str(result.get("score", 65))
                     # Ensure "No concerns" always gets 100
                     if not result.get("concerns") or len(result.get("concerns", [])) == 0:
                         result["score"] = "100"
@@ -257,11 +259,11 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
                 if 0 <= int(score) <= 100:
                     # Check for no concerns
                     concerns = []
-                    if "no concern" in response.lower() or "no issue" in response.lower() or "no performance" in response.lower() or "no efficiency" in response.lower():
+                    if "no concern" in response.lower() or "no issue" in response.lower() or "no efficiency" in response.lower() or "no problem" in response.lower():
                         concerns = ["No efficiency concerns detected"]
                         result = {"score": "100", "concerns": concerns}
                     else:
-                        concerns = ["No specific concerns identified"]
+                        concerns = ["No specific efficiency concerns identified"]
                         result = {"score": score, "concerns": concerns}
                     
                     # Add relevant resources
@@ -271,11 +273,11 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
             # If all parsing fails, return randomized values
             random_score = random.randint(50, 80)
             generic_concerns = [
-                "Consider using more efficient data structures for large collections",
-                "Review algorithms for potential optimization opportunities",
-                "Inefficient loop constructions may impact performance",
-                "Look for redundant operations that could be optimized",
-                "Consider implementing caching mechanisms for frequently accessed data"
+                "Consider optimizing loop structures to reduce time complexity",
+                "Review data structure choices for better space and time efficiency",
+                "Evaluate algorithm complexity and look for more efficient alternatives",
+                "Check for redundant calculations that could be optimized",
+                "Consider using caching or memoization for repeated operations"
             ]
             selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
             result = {"score": str(random_score), "concerns": selected_concerns}
@@ -284,15 +286,15 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
     
     except Exception as e:
         print(f"Error analyzing efficiency: {e}")
-        # Randomize the score between 50-80 instead of fixed 60
+        # Randomize the score between 50-80 instead of fixed 65
         random_score = random.randint(50, 80)
         # Generate generic concerns without line numbers
         generic_concerns = [
-            "Consider using more efficient data structures for large collections",
-            "Review algorithms for potential optimization opportunities",
-            "Inefficient loop constructions may impact performance",
-            "Look for redundant operations that could be optimized",
-            "Consider implementing caching mechanisms for frequently accessed data"
+            "Consider optimizing loop structures to reduce time complexity",
+            "Review data structure choices for better space and time efficiency",
+            "Evaluate algorithm complexity and look for more efficient alternatives",
+            "Check for redundant calculations that could be optimized",
+            "Consider using caching or memoization for repeated operations"
         ]
         # Select 1-3 random concerns
         selected_concerns = random.sample(generic_concerns, random.randint(1, 3))
@@ -303,8 +305,15 @@ def evaluate_efficiency(code: str, file_path: str = "") -> dict:
 if __name__ == "__main__":
     # Example usage
     sample_code = """
-def example_function():
-    return sum(range(100))
+def fibonacci(n):
+    if n <= 1:
+        return n
+    else:
+        return fibonacci(n-1) + fibonacci(n-2)
+    
+# Calculate 30th Fibonacci number
+result = fibonacci(30)
+print(result)
     """
     efficiency_analysis = evaluate_efficiency(sample_code)
-    print(f"Efficiency Analysis:\n{efficiency_analysis}")
+    print(f"Efficiency Analysis:\n{efficiency_analysis}") 
